@@ -13,6 +13,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const pdfRoutes = require('./routes/pdfRoutes');
 const noteRoutes = require('./routes/noteRoutes');
 const twoFactorRoutes = require('./routes/twoFactorRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 const app = express();
 
@@ -44,6 +45,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/pdf', pdfRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/2fa', twoFactorRoutes);
+app.use('/api/users', userRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serwer działa' });

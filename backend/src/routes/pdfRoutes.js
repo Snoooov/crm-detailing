@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const orderModel = require('../models/orderModel');
 const { generateReceptionCardPDF } = require('../services/pdfService');
 

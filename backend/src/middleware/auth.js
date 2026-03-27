@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 
-module.exports = (req, res, next) => {
+const auth = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
@@ -16,3 +16,12 @@ module.exports = (req, res, next) => {
     return res.status(403).json({ error: 'Nieprawidłowy token' });
   }
 };
+
+const adminOnly = (req, res, next) => {
+  if (req.user?.role !== 'admin') {
+    return res.status(403).json({ error: 'Brak uprawnień administratora' });
+  }
+  next();
+};
+
+module.exports = { auth, middleware: auth, adminOnly };

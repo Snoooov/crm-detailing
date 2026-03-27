@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
-const auth = require('../middleware/auth');
+const { auth } = require('../middleware/auth');
 const pool = require('../config/db');
 
 // Generuj sekret i kod QR
