@@ -52,8 +52,20 @@ const Layout = () => {
               {label}
             </NavLink>
           ))}
+            <NavLink to="/settings" style={({ isActive }) => ({
+              display: 'block',
+              padding: '10px 12px',
+              borderRadius: 6,
+              color: isActive ? 'white' : '#94a3b8',
+              background: isActive ? '#2563eb' : 'transparent',
+              textDecoration: 'none',
+              marginBottom: 4,
+              fontWeight: isActive ? 600 : 400,
+            })}>
+              Ustawienia
+            </NavLink>
         </nav>
-
+          
         <div style={{ padding: '16px 24px', borderTop: '1px solid #334155' }}>
           <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>{user?.name}</div>
           <button onClick={handleLogout} className="btn-secondary" style={{ width: '100%' }}>

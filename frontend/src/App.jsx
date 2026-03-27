@@ -12,6 +12,7 @@ import VehiclesPage from './pages/vehicles/VehiclesPage.jsx';
 import VehicleDetailPage from './pages/vehicles/VehicleDetailPage.jsx';
 import Layout from './components/Layout.jsx';
 import OrderReceptionCard from './pages/orders/OrderReceptionCard.jsx';
+import SettingsPage from './pages/SettingsPage.jsx';
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -41,6 +42,7 @@ function App() {
             <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="vehicles/:id" element={<VehicleDetailPage />} />
             <Route path="orders/:id/reception" element={<OrderReceptionCard />} />
+            <Route path="settings" element={<SettingsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

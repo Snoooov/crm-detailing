@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import api from '../api/axios';
+import { useAuth } from '../context/AuthContext.jsx';
+import api from '../api/axios.js';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [totpToken, setTotpToken] = useState('');
+  const [requires2FA, setRequires2FA] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -16,11 +18,21 @@ const LoginPage = () => {
     setError('');
     setLoading(true);
     try {
-      const res = await api.post('/auth/login', { email, password });
+      const payload = { email, password };
+      if (requires2FA) payload.totp_token = totpToken;
+
+      const res = await api.post('/auth/login', payload);
+
+      if (res.data.requires_2fa) {
+        setRequires2FA(true);
+        setLoading(false);
+        return;
+      }
+
       login(res.data.token, res.data.user);
-      navigate('/orders');
+      navigate('/dashboard');
     } catch (err) {
-      setError('Nieprawidłowy email lub hasło');
+      setError(err.response?.data?.error || 'Nieprawidłowy email lub hasło');
     } finally {
       setLoading(false);
     }
@@ -36,33 +48,73 @@ const LoginPage = () => {
     }}>
       <div className="card" style={{ width: '100%', maxWidth: 400 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Auto Detailing CRM</h1>
-        <p style={{ color: '#6b7280', marginBottom: 24 }}>Zaloguj się do systemu</p>
+        <p style={{ color: '#6b7280', marginBottom: 24 }}>
+          {requires2FA ? 'Wprowadź kod z aplikacji authenticator' : 'Zaloguj się do systemu'}
+        </p>
 
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="admin@crm.pl"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label>Hasło</label>
-            <input
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              required
-            />
-          </div>
+          {!requires2FA ? (
+            <>
+              <div className="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="admin@crm.pl"
+                  required
+                />
+              </div>
+              <div className="form-group">
+                <label>Hasło</label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                />
+              </div>
+            </>
+          ) : (
+            <div className="form-group">
+              <label>Kod weryfikacyjny (6 cyfr)</label>
+              <input
+                type="text"
+                value={totpToken}
+                onChange={e => setTotpToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                maxLength={6}
+                autoFocus
+                style={{ fontSize: 24, letterSpacing: 8, textAlign: 'center' }}
+              />
+              <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>
+                Otwórz Google Authenticator lub Authy i wprowadź kod
+              </div>
+            </div>
+          )}
+
           {error && <p className="error" style={{ marginBottom: 16 }}>{error}</p>}
-          <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={loading}>
-            {loading ? 'Logowanie...' : 'Zaloguj się'}
+
+          <button
+            type="submit"
+            className="btn-primary"
+            style={{ width: '100%' }}
+            disabled={loading || (requires2FA && totpToken.length !== 6)}
+          >
+            {loading ? 'Logowanie...' : requires2FA ? 'Weryfikuj' : 'Zaloguj się'}
           </button>
+
+          {requires2FA && (
+            <button
+              type="button"
+              className="btn-secondary"
+              style={{ width: '100%', marginTop: 8 }}
+              onClick={() => { setRequires2FA(false); setTotpToken(''); setError(''); }}
+            >
+              ← Wróć
+            </button>
+          )}
         </form>
       </div>
     </div>

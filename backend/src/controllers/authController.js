@@ -1,9 +1,14 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const speakeasy = require('speakeasy');
 const pool = require('../config/db');
 
 const login = async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, totp_token } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email i hasło są wymagane' });
+  }
 
   try {
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
@@ -16,6 +21,24 @@ const login = async (req, res) => {
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) {
       return res.status(401).json({ error: 'Nieprawidłowy email lub hasło' });
+    }
+
+    // Jeśli 2FA jest włączone
+    if (user.totp_enabled) {
+      if (!totp_token) {
+        return res.status(200).json({ requires_2fa: true });
+      }
+
+      const verified = speakeasy.totp.verify({
+        secret: user.totp_secret,
+        encoding: 'base32',
+        token: totp_token,
+        window: 1,
+      });
+
+      if (!verified) {
+        return res.status(401).json({ error: 'Nieprawidłowy kod weryfikacyjny' });
+      }
     }
 
     const token = jwt.sign(
