@@ -20,18 +20,14 @@ const OrderReceptionCard = () => {
     return new Date(dateStr).toLocaleDateString('pl-PL');
   };
 
-  // ✅ GENEROWANIE PDF
   const handleGeneratePDF = async () => {
     try {
       const token = localStorage.getItem('token');
       const url = `http://localhost:5000/api/pdf/orders/${id}/reception`;
-
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });
-
       if (!response.ok) throw new Error('Błąd generowania PDF');
-
       const blob = await response.blob();
       const pdfUrl = URL.createObjectURL(blob);
       window.open(pdfUrl, '_blank');
@@ -47,21 +43,16 @@ const OrderReceptionCard = () => {
   return (
     <>
       <style>{`
-        @media print {
-          .no-print { display: none !important; }
-          body { margin: 0; }
-          .card-page { padding: 16px !important; }
-        }
         .field-line {
           border-bottom: 1px solid #333;
-          min-height: 22px;
-          margin-top: 2px;
+          min-height: 20px;
+          margin-bottom: 2px;
         }
         .checkbox-row {
           display: flex;
           align-items: center;
           gap: 8px;
-          margin-bottom: 6px;
+          margin-bottom: 8px;
           font-size: 13px;
         }
         .checkbox-box {
@@ -77,24 +68,46 @@ const OrderReceptionCard = () => {
           letter-spacing: 0.08em;
           color: #444;
           border-bottom: 1.5px solid #333;
-          padding-bottom: 4px;
-          margin-bottom: 10px;
-          margin-top: 16px;
+          padding-bottom: 3px;
+          margin-bottom: 8px;
+          margin-top: 14px;
         }
         .grid-2 {
           display: grid;
           grid-template-columns: 1fr 1fr;
-          gap: 12px 24px;
+          gap: 8px 20px;
         }
         .field-label {
-          font-size: 11px;
+          font-size: 10px;
           color: #666;
-          margin-bottom: 2px;
+          margin-bottom: 1px;
+        }
+        .damage-line {
+          border-bottom: 1px solid #333;
+          min-height: 24px;
+          margin-bottom: 12px;
+        }
+        .inne-box {
+          border: 1px solid #333;
+          border-radius: 4px;
+          min-height: 60px;
+          margin-top: 4px;
+          padding: 4px;
+        }
+        .fuel-row {
+          display: flex;
+          gap: 20px;
+          margin-top: 6px;
+        }
+        .two-col {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
         }
       `}</style>
 
-      {/* Przyciski akcji — nie drukują się */}
-      <div className="no-print" style={{
+      {/* Pasek nawigacji */}
+      <div style={{
         padding: '16px 32px',
         background: '#1e293b',
         display: 'flex',
@@ -132,11 +145,11 @@ const OrderReceptionCard = () => {
         </button>
       </div>
 
-      {/* Karta do druku */}
-      <div className="card-page" style={{
+      {/* Podgląd karty */}
+      <div style={{
         maxWidth: 800,
         margin: '0 auto',
-        padding: '32px',
+        padding: '28px 32px',
         background: 'white',
         color: '#111',
         fontFamily: 'Arial, sans-serif',
@@ -144,9 +157,9 @@ const OrderReceptionCard = () => {
       }}>
 
         {/* Nagłówek */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.5px' }}>Auto Detailing</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>Auto Detailing</div>
             <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>Karta przyjęcia pojazdu</div>
           </div>
           <div style={{ textAlign: 'right', fontSize: 12 }}>
@@ -156,17 +169,17 @@ const OrderReceptionCard = () => {
           </div>
         </div>
 
-        <div style={{ borderTop: '2px solid #111', marginBottom: 16 }} />
+        <div style={{ borderTop: '2px solid #111', marginBottom: 14 }} />
 
         {/* Dane klienta i pojazdu */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 8 }}>
+        <div className="two-col">
           <div>
             <div className="section-title">Dane klienta</div>
+            <div style={{ marginBottom: 6 }}>
+              <div className="field-label">Imię i nazwisko</div>
+              <div className="field-line" style={{ fontWeight: 600 }}>{order.client_name}</div>
+            </div>
             <div className="grid-2">
-              <div style={{ gridColumn: '1 / -1' }}>
-                <div className="field-label">Imię i nazwisko</div>
-                <div className="field-line" style={{ fontWeight: 600 }}>{order.client_name}</div>
-              </div>
               <div>
                 <div className="field-label">Telefon</div>
                 <div className="field-line">{order.client_phone || ''}</div>
@@ -212,7 +225,7 @@ const OrderReceptionCard = () => {
         {/* Usługa */}
         <div className="section-title">Zlecona usługa</div>
         <div className="grid-2" style={{ marginBottom: 8 }}>
-          <div style={{ gridColumn: '1 / -1' }}>
+          <div>
             <div className="field-label">Nazwa usługi</div>
             <div className="field-line" style={{ fontWeight: 600 }}>{order.service_name}</div>
           </div>
@@ -220,9 +233,9 @@ const OrderReceptionCard = () => {
             <div className="field-label">Szacowana cena</div>
             <div className="field-line">{order.price ? `${parseFloat(order.price).toFixed(2)} zł` : ''}</div>
           </div>
-          <div>
+          <div style={{ gridColumn: '1 / -1' }}>
             <div className="field-label">Poziom paliwa</div>
-            <div style={{ display: 'flex', gap: 12, marginTop: 4 }}>
+            <div className="fuel-row">
               {['1/4', '1/2', '3/4', 'pełny'].map(lvl => (
                 <div key={lvl} className="checkbox-row" style={{ margin: 0 }}>
                   <div className="checkbox-box" />
@@ -233,7 +246,7 @@ const OrderReceptionCard = () => {
           </div>
           {order.service_description && (
             <div style={{ gridColumn: '1 / -1' }}>
-              <div className="field-label">Opis</div>
+              <div className="field-label">Opis usługi</div>
               <div className="field-line">{order.service_description}</div>
             </div>
           )}
@@ -241,57 +254,44 @@ const OrderReceptionCard = () => {
 
         {/* Wyposażenie */}
         <div className="section-title">Wyposażenie pojazdu</div>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '4px 16px', marginBottom: 8 }}>
-          {[
-            'Kluczyki (szt.): ___',
-            'Dowód rejestracyjny',
-            'Karta pojazdu',
-            'Dywaniki',
-            'Trójkąt ostrzegawczy',
-            'Gaśnica',
-            'Koło zapasowe',
-            'Ładowarka / kabel',
-            'Inne: _______________',
-          ].map(item => (
-            <div key={item} className="checkbox-row">
-              <div className="checkbox-box" />
-              <span>{item}</span>
-            </div>
-          ))}
+        <div style={{ display: 'flex', gap: 32, alignItems: 'flex-start', marginBottom: 8 }}>
+          <div className="checkbox-row">
+            <div className="checkbox-box" />
+            <span>Kluczyki</span>
+          </div>
+          <div className="checkbox-row">
+            <div className="checkbox-box" />
+            <span>Dowód rejestracyjny</span>
+          </div>
+        </div>
+        <div>
+          <div className="field-label">Inne</div>
+          <div className="inne-box"></div>
         </div>
 
-        {/* Stan pojazdu + schemat */}
+        {/* Stan pojazdu */}
         <div className="section-title">Stan zewnętrzny pojazdu</div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 8 }}>
-          <div>
-            <div className="field-label" style={{ marginBottom: 6 }}>Uwagi dotyczące stanu (zarysowania, wgniecenia itp.)</div>
-            {[1,2,3,4].map(i => (
-              <div key={i} className="field-line" style={{ marginBottom: 8 }} />
-            ))}
-          </div>
-          <div style={{ textAlign: 'center' }}>
-            <div className="field-label" style={{ marginBottom: 6, textAlign: 'left' }}>Schemat — zaznacz uszkodzenia</div>
-            <img
-              src="/images/car-schema.jpg"
-              alt="Schemat pojazdu"
-              style={{ width: '100%', maxHeight: 160, objectFit: 'contain', border: '1px solid #ddd', borderRadius: 4 }}
-            />
-          </div>
+        <div className="field-label" style={{ marginBottom: 10 }}>
+          Opis uszkodzeń, zarysowań, wgnieceń i innych uwag dotyczących stanu pojazdu
         </div>
+        <div className="damage-line" />
+        <div className="damage-line" />
+        <div className="damage-line" />
+        <div className="damage-line" />
 
         {/* Uwagi */}
         <div className="section-title">Uwagi klienta</div>
-        <div className="field-line" style={{ marginBottom: 8 }} />
-        <div className="field-line" style={{ marginBottom: 16 }} />
+        <div className="field-line" style={{ marginBottom: 10, minHeight: 22 }} />
+        <div className="field-line" style={{ marginBottom: 14, minHeight: 22 }} />
 
         {/* Zgoda */}
         <div style={{
           border: '1px solid #aaa',
           borderRadius: 4,
-          padding: '10px 12px',
+          padding: '8px 10px',
           fontSize: 11,
           color: '#444',
-          marginBottom: 16,
+          marginBottom: 12,
           lineHeight: 1.6,
         }}>
           Wyrażam zgodę na wykonanie zleconych prac serwisowych oraz potwierdzam zgodność powyższych danych.

@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const path = require('path');
 
 const generateReceptionCardPDF = async (order) => {
   const browser = await puppeteer.launch({
@@ -7,8 +8,6 @@ const generateReceptionCardPDF = async (order) => {
   });
 
   const page = await browser.newPage();
-
-  const carSchemaPath = `file:///${process.cwd()}/public/images/car-schema.jpg`.replace(/\\/g, '/');
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '_______________';
@@ -26,7 +25,7 @@ const generateReceptionCardPDF = async (order) => {
       font-family: Arial, sans-serif;
       font-size: 13px;
       color: #111;
-      padding: 32px;
+      padding: 28px 32px;
       background: white;
     }
     .header {
@@ -52,30 +51,28 @@ const generateReceptionCardPDF = async (order) => {
       margin-top: 14px;
     }
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; }
-    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 4px 12px; }
     .field-label { font-size: 10px; color: #666; margin-bottom: 1px; }
     .field-line {
       border-bottom: 1px solid #333;
-      min-height: 18px;
+      min-height: 20px;
       margin-bottom: 2px;
-      font-size: 13px;
     }
     .field-value { font-weight: 600; }
     .checkbox-row {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-bottom: 5px;
-      font-size: 12px;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
     }
     .checkbox-box {
-      width: 13px;
-      height: 13px;
+      width: 14px;
+      height: 14px;
       border: 1.5px solid #333;
       flex-shrink: 0;
     }
-    .fuel-row { display: flex; gap: 16px; margin-top: 4px; }
-    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .fuel-row { display: flex; gap: 20px; margin-top: 6px; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
     .consent-box {
       border: 1px solid #aaa;
       border-radius: 4px;
@@ -94,14 +91,19 @@ const generateReceptionCardPDF = async (order) => {
     }
     .signature-line {
       border-bottom: 1px solid #333;
-      margin-top: 28px;
+      margin-top: 32px;
     }
-    .car-schema {
-      width: 100%;
-      max-height: 150px;
-      object-fit: contain;
-      border: 1px solid #ddd;
+    .inne-box {
+      border: 1px solid #333;
       border-radius: 4px;
+      min-height: 60px;
+      margin-top: 4px;
+      padding: 4px;
+    }
+    .damage-line {
+      border-bottom: 1px solid #333;
+      min-height: 24px;
+      margin-bottom: 12px;
     }
   </style>
 </head>
@@ -181,7 +183,7 @@ const generateReceptionCardPDF = async (order) => {
       <div class="field-label">Szacowana cena</div>
       <div class="field-line">${order.price ? parseFloat(order.price).toFixed(2) + ' zł' : ''}</div>
     </div>
-    <div>
+    <div style="grid-column: 1 / -1">
       <div class="field-label">Poziom paliwa</div>
       <div class="fuel-row">
         ${['1/4', '1/2', '3/4', 'pełny'].map(lvl => `
@@ -193,43 +195,38 @@ const generateReceptionCardPDF = async (order) => {
       </div>
     </div>
     ${order.service_description ? `
-    <div>
-      <div class="field-label">Opis</div>
+    <div style="grid-column: 1 / -1">
+      <div class="field-label">Opis usługi</div>
       <div class="field-line">${order.service_description}</div>
     </div>` : ''}
   </div>
 
   <div class="section-title">Wyposażenie pojazdu</div>
-  <div class="grid-3">
-    ${['Kluczyki (szt.): ___', 'Dowód rejestracyjny', 'Karta pojazdu',
-       'Dywaniki', 'Trójkąt ostrzegawczy', 'Gaśnica',
-       'Koło zapasowe', 'Ładowarka / kabel', 'Inne: _______________'
-      ].map(item => `
-      <div class="checkbox-row">
-        <div class="checkbox-box"></div>
-        <span>${item}</span>
-      </div>
-    `).join('')}
+  <div style="display: flex; gap: 32px; align-items: flex-start; margin-bottom: 8px;">
+    <div class="checkbox-row">
+      <div class="checkbox-box"></div>
+      <span>Kluczyki</span>
+    </div>
+    <div class="checkbox-row">
+      <div class="checkbox-box"></div>
+      <span>Dowód rejestracyjny</span>
+    </div>
+  </div>
+  <div>
+    <div class="field-label">Inne</div>
+    <div class="inne-box"></div>
   </div>
 
   <div class="section-title">Stan zewnętrzny pojazdu</div>
-  <div class="two-col">
-    <div>
-      <div class="field-label" style="margin-bottom:6px">Uwagi (zarysowania, wgniecenia itp.)</div>
-      <div class="field-line" style="margin-bottom:8px"></div>
-      <div class="field-line" style="margin-bottom:8px"></div>
-      <div class="field-line" style="margin-bottom:8px"></div>
-      <div class="field-line"></div>
-    </div>
-    <div>
-      <div class="field-label" style="margin-bottom:6px">Schemat — zaznacz uszkodzenia</div>
-      <img class="car-schema" src="${carSchemaPath}" alt="Schemat pojazdu" />
-    </div>
-  </div>
+  <div class="field-label" style="margin-bottom: 10px">Opis uszkodzeń, zarysowań, wgnieceń i innych uwag dotyczących stanu pojazdu</div>
+  <div class="damage-line"></div>
+  <div class="damage-line"></div>
+  <div class="damage-line"></div>
+  <div class="damage-line"></div>
 
   <div class="section-title">Uwagi klienta</div>
-  <div class="field-line" style="margin-bottom:8px"></div>
-  <div class="field-line" style="margin-bottom:8px"></div>
+  <div class="field-line" style="margin-bottom:10px; min-height:22px;"></div>
+  <div class="field-line" style="margin-bottom:14px; min-height:22px;"></div>
 
   <div class="consent-box">
     Wyrażam zgodę na wykonanie zleconych prac serwisowych oraz potwierdzam zgodność powyższych danych.

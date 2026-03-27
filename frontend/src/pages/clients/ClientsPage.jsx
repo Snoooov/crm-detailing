@@ -8,6 +8,50 @@ const STATUS_LABELS = {
   normal: { label: 'Zwykły', color: '#6b7280' },
 };
 
+const ClientsTable = ({ clients, navigate, showNip = false }) => (
+  clients.length === 0 ? (
+    <div style={{ textAlign: 'center', padding: '24px 0', color: '#6b7280' }}>Brak klientów</div>
+  ) : (
+    <table>
+      <thead>
+        <tr>
+          <th>Imię i nazwisko / Firma</th>
+          <th>Telefon</th>
+          <th>Email</th>
+          {showNip && <th>NIP</th>}
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {clients.map(client => (
+          <tr
+            key={client.id}
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate(`/clients/${client.id}`)}
+          >
+            <td style={{ fontWeight: 500 }}>{client.full_name}</td>
+            <td>{client.phone || '—'}</td>
+            <td>{client.email || '—'}</td>
+            {showNip && <td>{client.nip || '—'}</td>}
+            <td>
+              <span style={{
+                color: STATUS_LABELS[client.status]?.color,
+                border: `1px solid ${STATUS_LABELS[client.status]?.color}`,
+                borderRadius: 6,
+                padding: '2px 8px',
+                fontSize: 12,
+                fontWeight: 600,
+              }}>
+                {STATUS_LABELS[client.status]?.label}
+              </span>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+);
+
 const ClientsPage = () => {
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +96,9 @@ const ClientsPage = () => {
     }
   };
 
+  const individuals = clients.filter(c => !c.nip);
+  const companies = clients.filter(c => c.nip);
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -67,7 +114,7 @@ const ClientsPage = () => {
           <form onSubmit={handleSubmit}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                <label>Imię i nazwisko *</label>
+                <label>Imię i nazwisko / Nazwa firmy *</label>
                 <input name="full_name" value={form.full_name} onChange={handleChange} required placeholder="Jan Kowalski" />
               </div>
               <div className="form-group">
@@ -79,7 +126,7 @@ const ClientsPage = () => {
                 <input type="email" name="email" value={form.email} onChange={handleChange} placeholder="jan@example.pl" />
               </div>
               <div className="form-group">
-                <label>NIP</label>
+                <label>NIP <span style={{ color: '#6b7280', fontWeight: 400 }}>(wypełnij dla firm)</span></label>
                 <input name="nip" value={form.nip} onChange={handleChange} placeholder="Opcjonalnie" />
               </div>
               <div className="form-group">
@@ -111,44 +158,67 @@ const ClientsPage = () => {
 
         {loading ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Ładowanie...</div>
-        ) : clients.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Brak klientów</div>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Imię i nazwisko</th>
-                <th>Telefon</th>
-                <th>Email</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {clients.map(client => (
-                <tr
-                  key={client.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => navigate(`/clients/${client.id}`)}
-                >
-                  <td style={{ fontWeight: 500 }}>{client.full_name}</td>
-                  <td>{client.phone || '—'}</td>
-                  <td>{client.email || '—'}</td>
-                  <td>
-                    <span style={{
-                      color: STATUS_LABELS[client.status]?.color,
-                      border: `1px solid ${STATUS_LABELS[client.status]?.color}`,
-                      borderRadius: 6,
-                      padding: '2px 8px',
-                      fontSize: 12,
-                      fontWeight: 600,
-                    }}>
-                      {STATUS_LABELS[client.status]?.label}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <>
+            {/* Sekcja — osoby prywatne */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              marginBottom: 12,
+            }}>
+              <div style={{
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: '#6b7280',
+              }}>
+                Osoby prywatne
+              </div>
+              <div style={{
+                background: '#f3f4f6',
+                color: '#6b7280',
+                borderRadius: 99,
+                padding: '1px 8px',
+                fontSize: 12,
+                fontWeight: 600,
+              }}>
+                {individuals.length}
+              </div>
+            </div>
+            <ClientsTable clients={individuals} navigate={navigate}  />
+
+            {/* Separator */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              margin: '24px 0 12px',
+            }}>
+              <div style={{
+                fontSize: 12,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: '#6b7280',
+              }}>
+                Firmy
+              </div>
+              <div style={{
+                background: '#f3f4f6',
+                color: '#6b7280',
+                borderRadius: 99,
+                padding: '1px 8px',
+                fontSize: 12,
+                fontWeight: 600,
+              }}>
+                {companies.length}
+              </div>
+              <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
+            </div>
+            <ClientsTable clients={companies} navigate={navigate} showNip={true}/>
+          </>
         )}
       </div>
     </div>

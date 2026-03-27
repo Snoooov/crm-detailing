@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import PaymentSection from '../../components/PaymentSection.jsx';
+import NotesSection from '../../components/NotesSection.jsx';
 
 const STATUSES = {
   inspection: { label: 'Oględziny / Wycena', color: '#6b7280' },
@@ -271,6 +272,7 @@ const OrderDetailPage = () => {
           </>
         )}
       </div>
+      <NotesSection entityType="order" entityId={id} />
     </div>
   );
 };

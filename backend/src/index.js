@@ -9,6 +9,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const searchRoutes = require('./routes/searchRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes'); 
 const pdfRoutes = require('./routes/pdfRoutes');
+const noteRoutes = require('./routes/noteRoutes');
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/dashboard', dashboardRoutes); 
 app.use('/api/pdf', pdfRoutes);
+app.use('/api/notes', noteRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serwer działa' });
