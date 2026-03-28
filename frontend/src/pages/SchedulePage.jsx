@@ -66,7 +66,12 @@ const SchedulePage = () => {
     });
   };
 
-  const isToday = (date) => toDateStr(date) === toDateStr(new Date());
+  const isToday = (date) => {
+  const today = new Date();
+  return date.getFullYear() === today.getFullYear() &&
+    date.getMonth() === today.getMonth() &&
+    date.getDate() === today.getDate();
+  };
 
   const goToPrevWeek = () => setWeekStart(prev => addDays(prev, -7));
   const goToNextWeek = () => setWeekStart(prev => addDays(prev, 7));
