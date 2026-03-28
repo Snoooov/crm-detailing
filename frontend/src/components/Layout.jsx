@@ -1,6 +1,7 @@
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import GlobalSearch from './GlobalSearch.jsx';
+import NotificationBell from './NotificationBell.jsx';
 
 const Layout = () => {
   const { user, logout } = useAuth();
@@ -27,9 +28,15 @@ const Layout = () => {
           <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>CRM System</div>
         </div>
 
-        <div style={{ padding: '16px 12px', borderBottom: '1px solid #334155' }}>
+        <div style={{ padding: '16px 12px'}}>
           <GlobalSearch />
         </div>
+        <div style={{ padding: '16px 24px', borderTop: '1px solid #334155', borderBottom: '1px solid #334155'}}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+          <div style={{ fontSize: 16, color: '#94a3b8' }}>{user?.name}</div>
+          <NotificationBell />
+        </div>
+</div>
 
         <nav style={{ flex: 1, padding: '16px 12px' }}>
           {[
@@ -79,12 +86,10 @@ const Layout = () => {
             </NavLink>
           )}
         </nav>
-          
         <div style={{ padding: '16px 24px', borderTop: '1px solid #334155' }}>
-          <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 8 }}>{user?.name}</div>
-          <button onClick={handleLogout} className="btn-secondary" style={{ width: '100%' }}>
-            Wyloguj
-          </button>
+        <button onClick={handleLogout} className="btn-secondary" style={{ width: '100%' }}>
+          Wyloguj
+        </button>
         </div>
       </aside>
 

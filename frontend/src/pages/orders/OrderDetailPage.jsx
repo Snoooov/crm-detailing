@@ -3,6 +3,9 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import PaymentSection from '../../components/PaymentSection.jsx';
 import NotesSection from '../../components/NotesSection.jsx';
+import OrderAssignments from '../../components/OrderAssignments.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+
 
 const STATUSES = {
   inspection: { label: 'Oględziny / Wycena', color: '#6b7280' },
@@ -14,6 +17,9 @@ const STATUSES = {
 };
 
 const OrderDetailPage = () => {
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
@@ -186,15 +192,23 @@ const OrderDetailPage = () => {
               )}
             </div>
 
+            <OrderAssignments orderId={id} />
+
             <div style={{ display: 'flex', gap: 12 }}>
-            <button className="btn-primary" onClick={() => setEditing(true)}>Edytuj</button>
-            <button
-                className="btn-secondary"
-                onClick={() => navigate(`/orders/${order.id}/reception`)}
-            >
-                Karta przyjęcia
-            </button>
-            <button className="btn-danger" onClick={handleDelete}>Usuń</button>
+              {isAdmin && (
+                <button className="btn-primary" onClick={() => setEditing(true)}>Edytuj</button>
+              )}
+              {isAdmin && (
+                <button
+                  className="btn-secondary"
+                  onClick={() => navigate(`/orders/${order.id}/reception`)}
+                >
+                  Karta przyjęcia
+                </button>
+              )}
+              {isAdmin && (
+                <button className="btn-danger" onClick={handleDelete}>Usuń</button>
+              )}
             </div>
           </>
         ) : (

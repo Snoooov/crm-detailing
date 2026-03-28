@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
+import { useAuth } from '../../context/AuthContext.jsx';
+import Pagination from '../../components/Pagination.jsx';
 
 const STATUSES = {
   inspection: { label: 'Oględziny / Wycena', color: '#6b7280' },
@@ -17,6 +19,13 @@ const SortIcon = ({ field, sortField, sortDir }) => {
 };
 
 const OrdersPage = () => {
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const PER_PAGE = 20;
+
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
+
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -75,10 +84,12 @@ const OrdersPage = () => {
 
   const handleFilterChange = (e) => {
     setFilters(prev => ({ ...prev, [e.target.name]: e.target.value }));
+    setCurrentPage(1);
   };
 
   const clearFilters = () => {
     setFilters({ status: '', date_from: '', date_to: '', price_min: '', price_max: '', is_paid: '' });
+    setCurrentPage(1);
   };
 
   const activeFiltersCount = Object.values(filters).filter(v => v !== '').length;
@@ -114,6 +125,10 @@ const OrdersPage = () => {
       return 0;
     });
 
+  const paginated = filteredAndSorted.slice(
+    (currentPage - 1) * PER_PAGE,
+    currentPage * PER_PAGE
+  );
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('pl-PL');
@@ -161,9 +176,11 @@ const OrdersPage = () => {
               </span>
             )}
           </button>
-          <button className="btn-primary" onClick={() => navigate('/orders/new')}>
-            + Nowe zlecenie
-          </button>
+          {isAdmin && (
+            <button className="btn-primary" onClick={() => navigate('/orders/new')}>
+              + Nowe zlecenie
+            </button>
+          )}
         </div>
       </div>
 
@@ -255,11 +272,12 @@ const OrdersPage = () => {
                 <th style={thStyle} onClick={() => handleSort('price')}>
                   Cena <SortIcon field="price" sortField={sortField} sortDir={sortDir} />
                 </th>
+                <th>Pracownicy</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {filteredAndSorted.map(order => (
+              {paginated.map(order => (
                 <tr
                   key={order.id}
                   style={{ cursor: 'pointer' }}
@@ -278,6 +296,27 @@ const OrdersPage = () => {
                     {formatPrice(order.price)}
                     {order.is_paid && (
                       <span style={{ marginLeft: 6, fontSize: 11, color: '#16a34a', fontWeight: 700 }}>✓</span>
+                    )}
+                  </td>
+                  <td onClick={e => e.stopPropagation()}>
+                    {order.assigned_users?.length > 0 ? (
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {order.assigned_users.map(u => (
+                          <span key={u.id} style={{
+                            background: '#dbeafe',
+                            color: '#1d4ed8',
+                            borderRadius: 99,
+                            padding: '2px 8px',
+                            fontSize: 11,
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                          }}>
+                            {u.name.split(' ')[0]}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span style={{ color: '#d1d5db', fontSize: 12 }}>—</span>
                     )}
                   </td>
                   <td onClick={e => e.stopPropagation()}>
@@ -304,6 +343,12 @@ const OrdersPage = () => {
             </tbody>
           </table>
         )}
+        <Pagination
+          total={filteredAndSorted.length}
+          perPage={PER_PAGE}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

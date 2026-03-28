@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
+import ClientStats from '../../components/ClientStats.jsx';
 
 const STATUSES = {
   inspection: 'Oględziny / Wycena',
@@ -200,6 +201,7 @@ const ClientDetailPage = () => {
         </div>
       </div>
       <NotesSection entityType="client" entityId={id} />
+      <ClientStats clientId={id} />
     </div>
   );
 };

@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
+import Pagination from '../../components/Pagination.jsx';
 
 const VehiclesPage = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const PER_PAGE = 20;
+
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -31,7 +35,10 @@ const VehiclesPage = () => {
   }, []);
 
   useEffect(() => {
-    const timeout = setTimeout(() => fetchVehicles(search), 300);
+    const timeout = setTimeout(() => {
+      fetchVehicles(search);
+      setCurrentPage(1);
+    }, 300);
     return () => clearTimeout(timeout);
   }, [search]);
 
@@ -52,6 +59,10 @@ const VehiclesPage = () => {
     }
   };
 
+  const paginated = vehicles.slice(
+    (currentPage - 1) * PER_PAGE,
+    currentPage * PER_PAGE
+  );
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
@@ -123,6 +134,7 @@ const VehiclesPage = () => {
         ) : vehicles.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Brak pojazdów</div>
         ) : (
+          
           <table>
             <thead>
               <tr>
@@ -134,7 +146,7 @@ const VehiclesPage = () => {
               </tr>
             </thead>
             <tbody>
-              {vehicles.map(vehicle => (
+              {paginated.map(vehicle => (
                 <tr
                   key={vehicle.id}
                   style={{ cursor: 'pointer' }}
@@ -150,6 +162,12 @@ const VehiclesPage = () => {
             </tbody>
           </table>
         )}
+        <Pagination
+          total={vehicles.length}
+          perPage={PER_PAGE}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );

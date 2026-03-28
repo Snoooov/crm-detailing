@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
+import Pagination from '../../components/Pagination.jsx';
 
 const STATUS_LABELS = {
   vip: { label: 'VIP', color: '#7c3aed' },
@@ -9,6 +10,7 @@ const STATUS_LABELS = {
 };
 
 const ClientsTable = ({ clients, navigate, showNip = false }) => (
+  
   clients.length === 0 ? (
     <div style={{ textAlign: 'center', padding: '24px 0', color: '#6b7280' }}>Brak klientów</div>
   ) : (
@@ -53,6 +55,9 @@ const ClientsTable = ({ clients, navigate, showNip = false }) => (
 );
 
 const ClientsPage = () => {
+  const [currentPage, setCurrentPage] = useState(1);
+  const PER_PAGE = 15;
+
   const [clients, setClients] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -75,9 +80,12 @@ const ClientsPage = () => {
   useEffect(() => { fetchClients(); }, []);
 
   useEffect(() => {
-    const timeout = setTimeout(() => fetchClients(search), 300);
-    return () => clearTimeout(timeout);
-  }, [search]);
+  const timeout = setTimeout(() => {
+    fetchClients(search);
+    setCurrentPage(1);
+  }, 300);
+  return () => clearTimeout(timeout);
+}, [search]);
 
   const handleChange = (e) => {
     setForm(prev => ({ ...prev, [e.target.name]: e.target.value }));
@@ -98,6 +106,12 @@ const ClientsPage = () => {
 
   const individuals = clients.filter(c => !c.nip);
   const companies = clients.filter(c => c.nip);
+  const paginatedIndividuals = individuals.slice(
+    (currentPage - 1) * PER_PAGE,
+    currentPage * PER_PAGE
+  );
+
+  const paginatedCompanies = companies.slice(0, PER_PAGE);
 
   return (
     <div>
@@ -187,8 +201,14 @@ const ClientsPage = () => {
                 {individuals.length}
               </div>
             </div>
-            <ClientsTable clients={individuals} navigate={navigate}  />
-
+            <Pagination
+              total={individuals.length}
+              perPage={PER_PAGE}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+            <ClientsTable clients={paginatedIndividuals} navigate={navigate}  />
+              
             {/* Separator */}
             <div style={{
               display: 'flex',
@@ -217,7 +237,13 @@ const ClientsPage = () => {
               </div>
               <div style={{ flex: 1, height: 1, background: '#e5e7eb' }} />
             </div>
-            <ClientsTable clients={companies} navigate={navigate} showNip={true}/>
+            <Pagination
+              total={companies.length}
+              perPage={PER_PAGE}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+            <ClientsTable clients={paginatedCompanies} navigate={navigate} showNip={true}/>
           </>
         )}
       </div>
