@@ -16,6 +16,8 @@ const twoFactorRoutes = require('./routes/twoFactorRoutes');
 const userRoutes = require('./routes/userRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const assignmentRoutes = require('./routes/assignmentRoutes');
+const { startScheduler } = require('./services/emailScheduler');
+const emailRoutes = require('./routes/emailRoutes');
 
 const app = express();
 
@@ -50,12 +52,14 @@ app.use('/api/2fa', twoFactorRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/assignments', assignmentRoutes);
+app.use('/api/emails', emailRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serwer działa' });
 });
 
 const PORT = process.env.PORT || 5000;
+startScheduler();
 app.listen(PORT, () => {
   console.log(`Serwer uruchomiony na porcie ${PORT}`);
 });

@@ -37,7 +37,6 @@ const Layout = () => {
           <NotificationBell />
         </div>
 </div>
-
         <nav style={{ flex: 1, padding: '16px 12px' }}>
           {[
             { to: '/dashboard', label: 'Dashboard' },
@@ -59,7 +58,7 @@ const Layout = () => {
               {label}
             </NavLink>
           ))}
-          <NavLink to="/settings" style={({ isActive }) => ({
+           <NavLink to="/settings" style={({ isActive }) => ({
               display: 'block',
               padding: '10px 12px',
               borderRadius: 6,
@@ -83,6 +82,18 @@ const Layout = () => {
               fontWeight: isActive ? 600 : 400,
             })}>
               Użytkownicy
+            </NavLink>
+            
+          )}
+          {user?.role === 'admin' && (
+            <NavLink to="/emails" style={({ isActive }) => ({
+              display: 'block', padding: '10px 12px', borderRadius: 6,
+              color: isActive ? 'white' : '#94a3b8',
+              background: isActive ? '#2563eb' : 'transparent',
+              textDecoration: 'none', marginBottom: 4,
+              fontWeight: isActive ? 600 : 400,
+            })}>
+              Maile
             </NavLink>
           )}
         </nav>

@@ -14,11 +14,15 @@ import Layout from './components/Layout.jsx';
 import OrderReceptionCard from './pages/orders/OrderReceptionCard.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import UsersPage from './pages/UsersPage.jsx';
+import EmailsPage from './pages/EmailsPage.jsx';
+
+const DefaultRedirect = () => <Navigate to="/dashboard" />;
 
 const PrivateRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <div>Ładowanie...</div>;
-  return user ? children : <Navigate to="/login" />;
+  if (!user) return <Navigate to="/login" />;
+  return children;
 };
 
 function App() {
@@ -32,7 +36,7 @@ function App() {
               <Layout />
             </PrivateRoute>
           }>
-            <Route index element={<Navigate to="/dashboard" />} />
+            <Route index element={<DefaultRedirect />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="schedule" element={<SchedulePage />} />
             <Route path="orders" element={<OrdersPage />} />
@@ -43,6 +47,7 @@ function App() {
             <Route path="vehicles" element={<VehiclesPage />} />
             <Route path="vehicles/:id" element={<VehicleDetailPage />} />
             <Route path="orders/:id/reception" element={<OrderReceptionCard />} />
+            <Route path="emails" element={<EmailsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="users" element={<UsersPage />} />
           </Route>

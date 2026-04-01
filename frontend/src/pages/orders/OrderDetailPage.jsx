@@ -6,7 +6,6 @@ import NotesSection from '../../components/NotesSection.jsx';
 import OrderAssignments from '../../components/OrderAssignments.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
-
 const STATUSES = {
   inspection: { label: 'Oględziny / Wycena', color: '#6b7280' },
   planned: { label: 'Zaplanowane', color: '#2563eb' },
@@ -88,6 +87,9 @@ const OrderDetailPage = () => {
 
   if (loading) return <div>Ładowanie...</div>;
   if (!order) return <div>Nie znaleziono zlecenia</div>;
+
+  const isAssigned = order.assigned_users?.some(u => u.id === currentUser?.id);
+  const canEdit = isAdmin || isAssigned;
 
   return (
     <div>
@@ -195,10 +197,10 @@ const OrderDetailPage = () => {
             <OrderAssignments orderId={id} />
 
             <div style={{ display: 'flex', gap: 12 }}>
-              {isAdmin && (
+              {canEdit && (
                 <button className="btn-primary" onClick={() => setEditing(true)}>Edytuj</button>
               )}
-              {isAdmin && (
+              {canEdit && (
                 <button
                   className="btn-secondary"
                   onClick={() => navigate(`/orders/${order.id}/reception`)}
@@ -215,7 +217,7 @@ const OrderDetailPage = () => {
           <>
             <div className="form-group">
               <label>Klient *</label>
-              <select name="client_id" value={form.client_id} onChange={handleChange} required>
+              <select name="client_id" value={form.client_id} onChange={handleChange} required disabled={!isAdmin}>
                 {clients.map(c => (
                   <option key={c.id} value={c.id}>{c.full_name}</option>
                 ))}
@@ -224,7 +226,7 @@ const OrderDetailPage = () => {
 
             <div className="form-group">
               <label>Pojazd *</label>
-              <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange} required>
+              <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange} required disabled={!isAdmin}>
                 {vehicles.map(v => (
                   <option key={v.id} value={v.id}>{v.brand} {v.model} — {v.plate_number}</option>
                 ))}
@@ -244,18 +246,18 @@ const OrderDetailPage = () => {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div className="form-group">
                 <label>Data od</label>
-                <input type="date" name="date_from" value={form.date_from?.split('T')[0] || ''} onChange={handleChange} />
+                <input type="date" name="date_from" value={form.date_from?.split('T')[0] || ''} onChange={handleChange} disabled={!isAdmin} />
               </div>
               <div className="form-group">
                 <label>Data do</label>
-                <input type="date" name="date_to" value={form.date_to?.split('T')[0] || ''} onChange={handleChange} />
+                <input type="date" name="date_to" value={form.date_to?.split('T')[0] || ''} onChange={handleChange} disabled={!isAdmin} />
               </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div className="form-group">
                 <label>Cena (PLN)</label>
-                <input type="number" name="price" value={form.price || ''} onChange={handleChange} min="0" step="0.01" />
+                <input type="number" name="price" value={form.price || ''} onChange={handleChange} min="0" step="0.01" disabled={!isAdmin} />
               </div>
               <div className="form-group">
                 <label>Status</label>
@@ -275,7 +277,7 @@ const OrderDetailPage = () => {
               <textarea name="notes" value={form.notes || ''} onChange={handleChange} rows={3} />
             </div>
 
-            <PaymentSection form={form} onChange={handlePaymentChange} />
+            {isAdmin && <PaymentSection form={form} onChange={handlePaymentChange} />}
 
             {error && <p className="error" style={{ marginBottom: 16 }}>{error}</p>}
 

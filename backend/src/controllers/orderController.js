@@ -1,5 +1,6 @@
 const orderModel = require('../models/orderModel');
 const vehicleModel = require('../models/vehicleModel');
+const { sendOrderEmail } = require('../services/emailService');
 
 const VALID_STATUSES = ['inspection', 'planned', 'in_progress', 'done', 'released', 'cancelled'];
 
@@ -35,10 +36,6 @@ const getOrder = async (req, res) => {
 
 const createOrder = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Tylko administrator może tworzyć zlecenia' });
-    }
-
     const { client_id, vehicle_id, service_name, service_description, date_from, date_to, price, status, notes, is_paid, paid_cash, paid_card } = req.body;
 
     if (!client_id || !vehicle_id || !service_name) {
@@ -56,7 +53,35 @@ const createOrder = async (req, res) => {
     }
 
     const order = await orderModel.createOrder({ client_id, vehicle_id, service_name, service_description, date_from, date_to, price, status, notes, is_paid, paid_cash, paid_card });
-    res.status(201).json(order);
+
+    // Jeśli pracownik tworzy zlecenie — automatycznie przypisz go do zlecenia
+    if (req.user.role !== 'admin') {
+      const pool = require('../config/db');
+      await pool.query(
+        'INSERT INTO order_assignments (order_id, user_id) VALUES ($1, $2)',
+        [order.id, req.user.id]
+      );
+    }
+
+    // Wyślij potwierdzenie rezerwacji
+    try {
+      const pool = require('../config/db');
+      const orderDetails = await pool.query(
+        `SELECT o.*, c.full_name as client_name, c.email as client_email,
+                v.brand as vehicle_brand, v.model as vehicle_model, v.plate_number
+        FROM orders o
+        JOIN clients c ON o.client_id = c.id
+        JOIN vehicles v ON o.vehicle_id = v.id
+        WHERE o.id = $1`,
+        [order.id]
+      );
+      if (orderDetails.rows[0]) {
+        await sendOrderEmail(orderDetails.rows[0], 'confirmation');
+      }
+    } catch (emailErr) {
+      console.error('Błąd wysyłania maila potwierdzającego:', emailErr);
+    }
+    res.status(201).json(order);  
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Błąd serwera' });
@@ -65,14 +90,15 @@ const createOrder = async (req, res) => {
 
 const updateOrder = async (req, res) => {
   try {
-    if (req.user.role !== 'admin') {
-      return res.status(403).json({ error: 'Tylko administrator może edytować zlecenia' });
-    }
-
     const { client_id, vehicle_id, service_name, service_description, date_from, date_to, price, status, notes, is_paid, paid_cash, paid_card } = req.body;
 
     if (!client_id || !vehicle_id || !service_name) {
       return res.status(400).json({ error: 'Klient, pojazd i nazwa usługi są wymagane' });
+    }
+
+    if (req.user.role !== 'admin') {
+      const assigned = await orderModel.isAssigned(req.params.id, req.user.id);
+      if (!assigned) return res.status(403).json({ error: 'Brak dostępu do tego zlecenia' });
     }
 
     const vehicle = await vehicleModel.getVehicleById(vehicle_id);

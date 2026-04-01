@@ -5,8 +5,17 @@ const pool = require('../config/db');
 
 router.get('/', auth, async (req, res) => {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    const tomorrowDate = new Date(now);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrow = `${tomorrowDate.getFullYear()}-${String(tomorrowDate.getMonth() + 1).padStart(2, '0')}-${String(tomorrowDate.getDate()).padStart(2, '0')}`;
+    const userId = req.user.id;
+    const role = req.user.role;
+
+    const assignmentFilter = role === 'admin'
+      ? ''
+      : `AND o.id IN (SELECT order_id FROM order_assignments WHERE user_id = ${userId})`;
 
     const [todayOrders, overdueOrders, readyOrders, tomorrowOrders] = await Promise.all([
       pool.query(
@@ -18,6 +27,7 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_from = $1
            AND o.status NOT IN ('released', 'cancelled')
+           ${assignmentFilter}
          ORDER BY o.created_at DESC`,
         [today]
       ),
@@ -30,6 +40,7 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_to < $1
            AND o.status NOT IN ('released', 'cancelled', 'done')
+           ${assignmentFilter}
          ORDER BY o.date_to ASC`,
         [today]
       ),
@@ -41,8 +52,9 @@ router.get('/', auth, async (req, res) => {
          JOIN clients c ON o.client_id = c.id
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.status = 'done'
+           ${assignmentFilter}
          ORDER BY o.date_to ASC
-         LIMIT 10`,
+         LIMIT 10`
       ),
       pool.query(
         `SELECT o.id, o.service_name, o.status, o.date_from,
@@ -53,6 +65,7 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_from = $1
            AND o.status NOT IN ('released', 'cancelled')
+           ${assignmentFilter}
          ORDER BY o.created_at DESC`,
         [tomorrow]
       ),

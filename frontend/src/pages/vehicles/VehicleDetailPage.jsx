@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const STATUSES = {
   inspection: 'Oględziny / Wycena',
@@ -21,6 +22,8 @@ const VehicleDetailPage = () => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [error, setError] = useState('');
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
 
   useEffect(() => {
     api.get(`/vehicles/${id}`).then(res => {
@@ -151,6 +154,7 @@ const VehicleDetailPage = () => {
           )}
         </div>
 
+        {isAdmin && (
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
             Historia usług ({orders.length})
@@ -175,6 +179,7 @@ const VehicleDetailPage = () => {
             ))
           )}
         </div>
+      )}
       </div>
       <NotesSection entityType="vehicle" entityId={id} />
     </div>

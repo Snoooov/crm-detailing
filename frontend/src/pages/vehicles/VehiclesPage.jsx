@@ -1,7 +1,62 @@
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import Pagination from '../../components/Pagination.jsx';
+import { useState, useEffect, useRef } from 'react';
+
+const ClientSearch = ({ onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); return; }
+    const t = setTimeout(async () => {
+      const res = await api.get('/clients', { params: { search: query } });
+      setResults(res.data);
+      setOpen(true);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <input
+        value={query}
+        onChange={e => { setQuery(e.target.value); if (!e.target.value) onSelect(null); }}
+        placeholder="Wpisz imię, nazwisko lub telefon..."
+      />
+      {open && results.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: 'white', border: '1px solid #e5e7eb', borderRadius: 6,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflowY: 'auto',
+        }}>
+          {results.map(c => (
+            <div
+              key={c.id}
+              onClick={() => { setQuery(c.full_name); setOpen(false); onSelect(c); }}
+              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
+            >
+              <div style={{ fontWeight: 500, fontSize: 13 }}>{c.full_name}</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>{c.phone || c.email || ''}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const VehiclesPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
@@ -78,12 +133,7 @@ const VehiclesPage = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label>Klient *</label>
-              <select name="client_id" value={form.client_id} onChange={handleChange} required>
-                <option value="">Wybierz klienta</option>
-                {clients.map(c => (
-                  <option key={c.id} value={c.id}>{c.full_name}</option>
-                ))}
-              </select>
+              <ClientSearch onSelect={(client) => setForm(prev => ({ ...prev, client_id: client?.id || '' }))} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
               <div className="form-group">

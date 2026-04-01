@@ -1,12 +1,155 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import PaymentSection from '../../components/PaymentSection.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
+
+const ClientSearch = ({ value, onChange, onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState(null);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (query.length < 2) { setResults([]); return; }
+    const t = setTimeout(async () => {
+      const res = await api.get('/clients', { params: { search: query } });
+      setResults(res.data);
+      setOpen(true);
+    }, 300);
+    return () => clearTimeout(t);
+  }, [query]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (client) => {
+    setSelected(client);
+    setQuery(client.full_name);
+    setOpen(false);
+    onSelect(client);
+  };
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <input
+        value={query}
+        onChange={e => { setQuery(e.target.value); if (!e.target.value) { setSelected(null); onSelect(null); } }}
+        placeholder="Wpisz imię, nazwisko lub telefon..."
+      />
+      {open && results.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: 'white', border: '1px solid #e5e7eb', borderRadius: 6,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflowY: 'auto',
+        }}>
+          {results.map(c => (
+            <div
+              key={c.id}
+              onClick={() => handleSelect(c)}
+              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
+            >
+              <div style={{ fontWeight: 500, fontSize: 13 }}>{c.full_name}</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>{c.phone || c.email || ''}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const VehicleSearch = ({ clientId, value, onSelect }) => {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [allVehicles, setAllVehicles] = useState([]);
+  const [open, setOpen] = useState(false);
+  const wrapperRef = useRef(null);
+
+  useEffect(() => {
+    if (!clientId) { setAllVehicles([]); setResults([]); return; }
+    api.get('/vehicles', { params: { client_id: clientId } }).then(res => {
+      setAllVehicles(res.data);
+      setResults(res.data);
+    });
+  }, [clientId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const filtered = query.length < 1
+    ? allVehicles
+    : allVehicles.filter(v =>
+        `${v.brand} ${v.model} ${v.plate_number}`.toLowerCase().includes(query.toLowerCase())
+      );
+
+  const handleSelect = (vehicle) => {
+    setQuery(`${vehicle.brand} ${vehicle.model} — ${vehicle.plate_number}`);
+    setOpen(false);
+    onSelect(vehicle);
+  };
+
+  if (!clientId) return (
+    <input disabled placeholder="Najpierw wybierz klienta" style={{ opacity: 0.5 }} />
+  );
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <input
+        value={query}
+        onChange={e => { setQuery(e.target.value); setOpen(true); }}
+        onFocus={() => setOpen(true)}
+        placeholder="Wpisz markę, model lub rejestrację..."
+      />
+      {open && filtered.length > 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: 'white', border: '1px solid #e5e7eb', borderRadius: 6,
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)', zIndex: 100, maxHeight: 200, overflowY: 'auto',
+        }}>
+          {filtered.map(v => (
+            <div
+              key={v.id}
+              onClick={() => handleSelect(v)}
+              style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6' }}
+              onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
+              onMouseLeave={e => e.currentTarget.style.background = 'white'}
+            >
+              <div style={{ fontWeight: 500, fontSize: 13 }}>{v.brand} {v.model}</div>
+              <div style={{ fontSize: 12, color: '#6b7280' }}>{v.plate_number} · {v.color}</div>
+            </div>
+          ))}
+        </div>
+      )}
+      {open && filtered.length === 0 && (
+        <div style={{
+          position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0,
+          background: 'white', border: '1px solid #e5e7eb', borderRadius: 6,
+          padding: 12, fontSize: 13, color: '#6b7280', zIndex: 100,
+        }}>
+          Klient nie ma pojazdów
+        </div>
+      )}
+    </div>
+  );
+};
 
 const OrderFormPage = () => {
   const navigate = useNavigate();
-  const [clients, setClients] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
+  const { user } = useAuth();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -25,35 +168,27 @@ const OrderFormPage = () => {
     paid_card: 0,
   });
 
-  useEffect(() => {
-    api.get('/clients').then(res => setClients(res.data));
-  }, []);
-
-  useEffect(() => {
-    if (form.client_id) {
-      api.get('/vehicles', { params: { client_id: form.client_id } })
-        .then(res => setVehicles(res.data));
-    } else {
-      setVehicles([]);
-      setForm(prev => ({ ...prev, vehicle_id: '' }));
-    }
-  }, [form.client_id]);
-
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === 'client_id') {
-      setForm(prev => ({ ...prev, client_id: value, vehicle_id: '' }));
-    } else {
-      setForm(prev => ({ ...prev, [name]: value }));
-    }
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
   const handlePaymentChange = (field, value) => {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleClientSelect = (client) => {
+    setForm(prev => ({ ...prev, client_id: client?.id || '', vehicle_id: '' }));
+  };
+
+  const handleVehicleSelect = (vehicle) => {
+    setForm(prev => ({ ...prev, vehicle_id: vehicle?.id || '' }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!form.client_id) return setError('Wybierz klienta');
+    if (!form.vehicle_id) return setError('Wybierz pojazd');
     setError('');
     setLoading(true);
     try {
@@ -66,6 +201,8 @@ const OrderFormPage = () => {
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
@@ -77,25 +214,12 @@ const OrderFormPage = () => {
         <form onSubmit={handleSubmit}>
           <div className="form-group">
             <label>Klient *</label>
-            <select name="client_id" value={form.client_id} onChange={handleChange} required>
-              <option value="">Wybierz klienta</option>
-              {clients.map(c => (
-                <option key={c.id} value={c.id}>{c.full_name}</option>
-              ))}
-            </select>
+            <ClientSearch onSelect={handleClientSelect} />
           </div>
 
           <div className="form-group">
             <label>Pojazd *</label>
-            <select name="vehicle_id" value={form.vehicle_id} onChange={handleChange} required disabled={!form.client_id}>
-              <option value="">Wybierz pojazd</option>
-              {vehicles.map(v => (
-                <option key={v.id} value={v.id}>{v.brand} {v.model} — {v.plate_number}</option>
-              ))}
-            </select>
-            {form.client_id && vehicles.length === 0 && (
-              <span style={{ color: '#6b7280', fontSize: 13 }}>Klient nie ma pojazdów</span>
-            )}
+            <VehicleSearch clientId={form.client_id} onSelect={handleVehicleSelect} />
           </div>
 
           <div className="form-group">
@@ -142,7 +266,7 @@ const OrderFormPage = () => {
             <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} placeholder="Dodatkowe uwagi..." />
           </div>
 
-          <PaymentSection form={form} onChange={handlePaymentChange} />
+          {isAdmin && <PaymentSection form={form} onChange={handlePaymentChange} />}
 
           {error && <p className="error" style={{ marginBottom: 16 }}>{error}</p>}
 

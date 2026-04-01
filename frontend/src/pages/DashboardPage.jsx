@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const STATUSES = {
   inspection: { label: 'Oględziny', color: '#6b7280' },
@@ -23,38 +24,26 @@ const formatDate = (dateStr) => {
 
 const formatMonth = (yyyymm) => {
   const [year, month] = yyyymm.split('-');
-  const date = new Date(year, month - 1);
-  return date.toLocaleDateString('pl-PL', { month: 'short' });
+  return new Date(year, month - 1).toLocaleDateString('pl-PL', { month: 'short' });
 };
 
 const BarChart = ({ data }) => {
-  const max = Math.max(...data.map(d => parseFloat(d.total)), 1);
+  const values = data.map(d => parseFloat(d.total));
+  const max = Math.max(...values, 1);
+  const maxIndex = values.indexOf(Math.max(...values));
 
   return (
     <div style={{ display: 'flex', alignItems: 'flex-end', gap: 8, height: 160 }}>
       {data.map((d, i) => {
         const pct = (parseFloat(d.total) / max) * 100;
+        const isMax = i === maxIndex;
         return (
-          <div key={i} style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            height: '100%',
-            gap: 4,
-          }}>
-            <div style={{ fontSize: 10, color: '#6b7280', textAlign: 'center' }}>
+          <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: '100%', gap: 4 }}>
+            <div style={{ fontSize: 10, color: isMax ? '#16a34a' : '#6b7280', textAlign: 'center', fontWeight: isMax ? 700 : 400 }}>
               {Math.round(parseFloat(d.total))} zł
             </div>
-            <div style={{
-              width: '100%',
-              height: `${pct}%`,
-              minHeight: 4,
-              background: i === data.length - 1 ? '#2563eb' : '#bfdbfe',
-              borderRadius: '4px 4px 0 0',
-            }} />
-            <div style={{ fontSize: 11, color: '#6b7280' }}>
+            <div style={{ width: '100%', height: `${pct}%`, minHeight: 4, background: isMax ? '#16a34a' : '#bfdbfe', borderRadius: '4px 4px 0 0' }} />
+            <div style={{ fontSize: 11, color: isMax ? '#16a34a' : '#6b7280', fontWeight: isMax ? 700 : 400 }}>
               {formatMonth(d.month)}
             </div>
           </div>
@@ -72,10 +61,32 @@ const StatCard = ({ label, value, sub, color }) => (
   </div>
 );
 
+const QuickAction = ({ label, color, onClick }) => (
+  <button
+    onClick={onClick}
+    style={{
+      background: color,
+      color: 'white',
+      border: 'none',
+      borderRadius: 8,
+      padding: '14px 20px',
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: 'pointer',
+      flex: 1,
+      textAlign: 'left',
+    }}
+  >
+    + {label}
+  </button>
+);
+
 const DashboardPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => {
     api.get('/dashboard').then(res => {
@@ -96,45 +107,56 @@ const DashboardPage = () => {
     <div>
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Dashboard</h1>
 
+      {/* Szybkie akcje */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+        <QuickAction label="Nowe zlecenie" color="#2563eb" onClick={() => navigate('/orders/new')} />
+        <QuickAction label="Nowy klient" color="#16a34a" onClick={() => navigate('/clients')} />
+        <QuickAction label="Nowy pojazd" color="#7c3aed" onClick={() => navigate('/vehicles')} />
+      </div>
+
       {/* Karty statystyk */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isAdmin ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: 16, marginBottom: 24 }}>
+        {isAdmin && (
+          <StatCard
+            label="Przychód w tym miesiącu"
+            value={formatPrice(data.revenueThisMonth)}
+            sub="tylko opłacone zlecenia"
+            color="#2563eb"
+          />
+        )}
         <StatCard
-          label="Przychód w tym miesiącu"
-          value={formatPrice(data.revenueThisMonth)}
-          color="#2563eb"
-        />
-        <StatCard
-          label="Zlecenia dziś"
+          label={isAdmin ? 'Zlecenia dziś' : 'Moje zlecenia dziś'}
           value={data.ordersToday}
-          sub="aktywnych na dziś"
+          sub={isAdmin ? 'aktywnych na dziś' : 'przypisanych do mnie'}
           color="#d97706"
         />
         <StatCard
-          label="Aktywne zlecenia"
+          label={isAdmin ? 'Aktywne zlecenia' : 'Moje aktywne zlecenia'}
           value={activeOrders}
           sub="w toku (bez wydanych)"
           color="#16a34a"
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
-
-        {/* Wykres przychodów */}
-        <div className="card">
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
-            Przychody — ostatnie 6 miesięcy
-          </h2>
-          {data.monthlyRevenue.length === 0 ? (
-            <div style={{ color: '#6b7280', textAlign: 'center', padding: 40 }}>Brak danych</div>
-          ) : (
-            <BarChart data={data.monthlyRevenue} />
-          )}
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr', gap: 24, marginBottom: 24 }}>
+        {/* Wykres przychodów — tylko admin */}
+        {isAdmin && (
+          <div className="card">
+            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
+              Przychody — ostatnie 6 miesięcy
+            </h2>
+            {data.monthlyRevenue.length === 0 ? (
+              <div style={{ color: '#6b7280', textAlign: 'center', padding: 40 }}>Brak danych</div>
+            ) : (
+              <BarChart data={data.monthlyRevenue} />
+            )}
+          </div>
+        )}
 
         {/* Zlecenia według statusu */}
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
-            Aktywne zlecenia według statusu
+            {isAdmin ? 'Aktywne zlecenia według statusu' : 'Moje zlecenia według statusu'}
           </h2>
           {data.ordersByStatus.length === 0 ? (
             <div style={{ color: '#6b7280', textAlign: 'center', padding: 40 }}>Brak aktywnych zleceń</div>
@@ -151,13 +173,7 @@ const DashboardPage = () => {
                       <span style={{ fontSize: 13, color: '#6b7280' }}>{s.count}</span>
                     </div>
                     <div style={{ background: '#f3f4f6', borderRadius: 4, height: 6 }}>
-                      <div style={{
-                        width: `${pct}%`,
-                        height: '100%',
-                        background: STATUSES[s.status]?.color,
-                        borderRadius: 4,
-                        transition: 'width 0.3s ease',
-                      }} />
+                      <div style={{ width: `${pct}%`, height: '100%', background: STATUSES[s.status]?.color, borderRadius: 4 }} />
                     </div>
                   </div>
                 );
@@ -170,12 +186,10 @@ const DashboardPage = () => {
       {/* Nadchodzące zlecenia */}
       <div className="card">
         <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
-          Nadchodzące zlecenia
+          {isAdmin ? 'Nadchodzące zlecenia' : 'Moje nadchodzące zlecenia'}
         </h2>
         {data.upcomingOrders.length === 0 ? (
-          <div style={{ color: '#6b7280', textAlign: 'center', padding: 24 }}>
-            Brak nadchodzących zleceń
-          </div>
+          <div style={{ color: '#6b7280', textAlign: 'center', padding: 24 }}>Brak nadchodzących zleceń</div>
         ) : (
           <table>
             <thead>
@@ -184,27 +198,21 @@ const DashboardPage = () => {
                 <th>Klient</th>
                 <th>Pojazd</th>
                 <th>Usługa</th>
-                <th>Cena</th>
+                {isAdmin && <th>Cena</th>}
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {data.upcomingOrders.map(order => (
-                <tr
-                  key={order.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => navigate(`/orders/${order.id}`)}
-                >
+                <tr key={order.id} style={{ cursor: 'pointer' }} onClick={() => navigate(`/orders/${order.id}`)}>
                   <td style={{ whiteSpace: 'nowrap' }}>{formatDate(order.date_from)}</td>
                   <td>{order.client_name}</td>
                   <td>
                     {order.vehicle_brand} {order.vehicle_model}
-                    <span style={{ color: '#6b7280', fontSize: 12, marginLeft: 6 }}>
-                      {order.plate_number}
-                    </span>
+                    <span style={{ color: '#6b7280', fontSize: 12, marginLeft: 6 }}>{order.plate_number}</span>
                   </td>
                   <td>{order.service_name}</td>
-                  <td style={{ whiteSpace: 'nowrap' }}>{formatPrice(order.price)}</td>
+                  {isAdmin && <td style={{ whiteSpace: 'nowrap' }}>{formatPrice(order.price)}</td>}
                   <td>
                     <span style={{
                       color: STATUSES[order.status]?.color,

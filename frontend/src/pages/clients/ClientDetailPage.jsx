@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
 import ClientStats from '../../components/ClientStats.jsx';
+import { useAuth } from '../../context/AuthContext.jsx';
 
 const STATUSES = {
   inspection: 'Oględziny / Wycena',
@@ -27,6 +28,8 @@ const ClientDetailPage = () => {
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [error, setError] = useState('');
+  const { user: currentUser } = useAuth();
+  const isAdmin = currentUser?.role === 'admin';
 
   useEffect(() => {
     api.get(`/clients/${id}`).then(res => {
@@ -145,6 +148,7 @@ const ClientDetailPage = () => {
           )}
         </div>
 
+        {isAdmin && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div className="card">
             <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
@@ -156,11 +160,7 @@ const ClientDetailPage = () => {
               client.vehicles?.map(v => (
                 <div
                   key={v.id}
-                  style={{
-                    padding: '12px 0',
-                    borderBottom: '1px solid #e5e7eb',
-                    cursor: 'pointer',
-                  }}
+                  style={{ padding: '12px 0', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }}
                   onClick={() => navigate(`/vehicles`)}
                 >
                   <div style={{ fontWeight: 500 }}>{v.brand} {v.model} ({v.year})</div>
@@ -180,11 +180,7 @@ const ClientDetailPage = () => {
               client.orders?.map(o => (
                 <div
                   key={o.id}
-                  style={{
-                    padding: '12px 0',
-                    borderBottom: '1px solid #e5e7eb',
-                    cursor: 'pointer',
-                  }}
+                  style={{ padding: '12px 0', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }}
                   onClick={() => navigate(`/orders/${o.id}`)}
                 >
                   <div style={{ fontWeight: 500 }}>{o.service_name}</div>
@@ -199,9 +195,10 @@ const ClientDetailPage = () => {
             )}
           </div>
         </div>
+      )}
       </div>
+      {isAdmin && <ClientStats clientId={id} />}
       <NotesSection entityType="client" entityId={id} />
-      <ClientStats clientId={id} />
     </div>
   );
 };
