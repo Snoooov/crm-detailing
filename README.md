@@ -405,7 +405,7 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 - Przychód, liczba zleceń, wartość średnia, podział gotówka/karta
 - Wykres dzienny przychodów
 - Top 10 usług (liczba i wartość)
-- Ranking pracowników
+- Ranking pracowników — kliknięcie otwiera modal ze szczegółami pracownika (liczba zleceń, przychód, top usługi, statusy, ostatnie zlecenia)
 - Eksport do CSV
 
 ### Katalog usług (admin)
@@ -437,11 +437,11 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 - Backend automatycznie wykrywa lokalny IP sieci (iPhone na tym samym WiFi może subskrybować bez konfiguracji)
 - Na produkcji: ustaw `BACKEND_URL` w `.env`
 
-### Panel mailowy (admin)
-- Edycja szablonów HTML
+### Panel mailowy (admin + manager)
+- Edycja szablonów HTML (admin)
 - Historia wysłanych z paginacją
-- Wysyłanie testowe per szablon
-- Ręczne uruchamianie schedulera
+- Wysyłanie testowe per szablon (admin)
+- Ręczne uruchamianie schedulera (admin)
 
 ### 2FA (TOTP)
 - Konfiguracja przez QR code (Google Authenticator, Authy)
@@ -493,6 +493,7 @@ Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (opróc
 | Metoda | Ścieżka | Opis |
 |--------|---------|------|
 | GET | `/api/reports` | Statystyki (`?from=`, `?to=`) — admin + manager |
+| GET | `/api/reports/employee/:userId` | Statystyki pracownika (`?from=`, `?to=`) — admin + manager |
 
 ### Katalog usług
 | Metoda | Ścieżka | Opis |
@@ -525,15 +526,15 @@ Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (opróc
 | PUT | `/api/users/:id` | Edycja |
 | DELETE | `/api/users/:id` | Usuń |
 
-### Maile (tylko admin)
+### Maile
 | Metoda | Ścieżka | Opis |
 |--------|---------|------|
-| GET | `/api/emails/templates` | Lista szablonów |
-| PUT | `/api/emails/templates/:id` | Edycja szablonu |
-| GET | `/api/emails/logs` | Historia wysłanych |
-| POST | `/api/emails/send/:orderId/:type` | Wyślij ręcznie |
-| POST | `/api/emails/test` | Wyślij mail testowy |
-| POST | `/api/emails/run-jobs` | Uruchom scheduler |
+| GET | `/api/emails/templates` | Lista szablonów — admin + manager |
+| PUT | `/api/emails/templates/:id` | Edycja szablonu (admin) |
+| GET | `/api/emails/logs` | Historia wysłanych — admin + manager |
+| POST | `/api/emails/send/:orderId/:type` | Wyślij ręcznie (admin) |
+| POST | `/api/emails/test` | Wyślij mail testowy (admin) |
+| POST | `/api/emails/run-jobs` | Uruchom scheduler (admin) |
 
 ### Kalendarz iCal
 | Metoda | Ścieżka | Opis |
