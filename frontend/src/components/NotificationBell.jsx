@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import useDarkMode from '../hooks/useDarkMode.js';
 
 const TYPE_ICONS = {
   overdue: '🔴',
@@ -13,6 +14,8 @@ const NotificationBell = () => {
   const [notifications, setNotifications] = useState([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [dropdownPos, setDropdownPos] = useState({ top: 0 });
+  const isDark = useDarkMode();
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
 
@@ -66,7 +69,13 @@ const NotificationBell = () => {
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }}>
       <button
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          if (!open && wrapperRef.current) {
+            const rect = wrapperRef.current.getBoundingClientRect();
+            setDropdownPos({ top: rect.top });
+          }
+          setOpen(!open);
+        }}
         style={{
           background: 'none',
           border: 'none',
@@ -108,15 +117,14 @@ const NotificationBell = () => {
 
       {open && (
         <div style={{
-          position: 'absolute',
-          top: 'calc(100% + 8px)',
-          left: '100%',
-          top: 0,
-          marginLeft: 8,
+          position: 'fixed',
+          top: dropdownPos.top,
+          left: 236,
           width: 340,
-          background: 'white',
+          background: isDark ? '#1e293b' : 'white',
           borderRadius: 10,
-          boxShadow: '0 8px 32px rgba(0,0,0,0.15)',
+          border: isDark ? '1px solid #334155' : 'none',
+          boxShadow: '0 8px 32px rgba(0,0,0,0.25)',
           zIndex: 1000,
           overflow: 'hidden',
           maxHeight: 480,
@@ -124,36 +132,27 @@ const NotificationBell = () => {
         }}>
           <div style={{
             padding: '14px 16px',
-            borderBottom: '1px solid #e5e7eb',
+            borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+            background: isDark ? '#263548' : 'white',
           }}>
-            <span style={{ fontWeight: 700, fontSize: 14, color: '#111' }}>
+            <span style={{ fontWeight: 700, fontSize: 14, color: isDark ? '#e2e8f0' : '#111' }}>
               Powiadomienia
             </span>
             <button
               onClick={fetchNotifications}
               style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: 12,
-                color: '#6b7280',
-                padding: '2px 6px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: 12, color: '#6b7280', padding: '2px 6px',
               }}
             >
               {loading ? '...' : 'Odśwież'}
             </button>
           </div>
-
           {notifications.length === 0 ? (
-            <div style={{
-              padding: 32,
-              textAlign: 'center',
-              color: '#9ca3af',
-              fontSize: 13,
-            }}>
+            <div style={{ padding: 32, textAlign: 'center', color: '#9ca3af', fontSize: 13 }}>
               Brak powiadomień
             </div>
           ) : (
@@ -164,13 +163,10 @@ const NotificationBell = () => {
                 <div key={type}>
                   <div style={{
                     padding: '8px 16px',
-                    fontSize: 11,
-                    fontWeight: 700,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.06em',
-                    color: first.color,
-                    background: '#f9fafb',
-                    borderBottom: '1px solid #f3f4f6',
+                    fontSize: 11, fontWeight: 700, textTransform: 'uppercase',
+                    letterSpacing: '0.06em', color: first.color,
+                    background: isDark ? '#263548' : '#f9fafb',
+                    borderBottom: `1px solid ${isDark ? '#334155' : '#f3f4f6'}`,
                   }}>
                     {TYPE_ICONS[type]} {groupLabels[type]} ({items.length})
                   </div>
@@ -180,15 +176,15 @@ const NotificationBell = () => {
                       onClick={() => handleClick(n)}
                       style={{
                         padding: '10px 16px',
-                        borderBottom: '1px solid #f3f4f6',
+                        borderBottom: `1px solid ${isDark ? '#334155' : '#f3f4f6'}`,
                         cursor: 'pointer',
                         borderLeft: `3px solid ${n.color}`,
-                        transition: 'background 0.15s',
+                        background: isDark ? '#1e293b' : 'white',
                       }}
-                      onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                      onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                      onMouseEnter={e => e.currentTarget.style.background = isDark ? '#263548' : '#f9fafb'}
+                      onMouseLeave={e => e.currentTarget.style.background = isDark ? '#1e293b' : 'white'}
                     >
-                      <div style={{ fontWeight: 500, fontSize: 13, color: '#111' }}>
+                      <div style={{ fontWeight: 500, fontSize: 13, color: isDark ? '#e2e8f0' : '#111' }}>
                         {n.message}
                       </div>
                       <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>

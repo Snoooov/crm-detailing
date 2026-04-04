@@ -1,5 +1,129 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
+import useDarkMode from '../hooks/useDarkMode.js';
+
+const ICalSection = ({ isDark }) => {
+  const [icalUrl, setIcalUrl] = useState(null);
+  const [copiedUrl, setCopiedUrl] = useState(false);
+  const [copiedWebcal, setCopiedWebcal] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const generate = async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const res = await api.get('/ical/token');
+      setIcalUrl(res.data.url);
+    } catch (err) {
+      setError('Błąd podczas generowania linku');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const copyText = (text, setter) => {
+    navigator.clipboard.writeText(text);
+    setter(true);
+    setTimeout(() => setter(false), 2000);
+  };
+
+  const webcalUrl = icalUrl ? icalUrl.replace(/^https?/, 'webcal') : null;
+  const isLocalhost = icalUrl && (icalUrl.includes('localhost') || icalUrl.includes('127.0.0.1'));
+
+  return (
+    <div className="card" style={{ maxWidth: 560, marginTop: 24 }}>
+      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>Kalendarz iPhone / iCal</h2>
+      <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 16 }}>
+        Subskrybuj harmonogram zleceń w Kalendarzu iPhone, Google Calendar lub dowolnej aplikacji obsługującej iCal.
+        Kalendarz odświeża się automatycznie.
+      </p>
+
+      {!icalUrl ? (
+        <>
+          {error && <p className="error" style={{ marginBottom: 12 }}>{error}</p>}
+          <button className="btn-primary" onClick={generate} disabled={loading}>
+            {loading ? 'Generowanie...' : 'Wygeneruj link do kalendarza'}
+          </button>
+        </>
+      ) : (
+        <>
+          {isLocalhost && (
+            <div style={{
+              background: isDark ? '#7c2d1222' : '#fff7ed',
+              border: '1px solid #f97316',
+              borderRadius: 8, padding: '10px 14px', marginBottom: 14, fontSize: 13,
+              color: isDark ? '#fb923c' : '#c2410c',
+            }}>
+              <strong>Uwaga:</strong> URL zawiera <code>localhost</code> — iPhone nie może się z nim połączyć.
+              Upewnij się że serwer nasłuchuje na interfejsie sieciowym (nie tylko 127.0.0.1) lub zrestartuj backend — powinien automatycznie wykryć lokalny IP.
+            </div>
+          )}
+
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 4, fontWeight: 600 }}>
+              URL kalendarza (HTTP)
+            </div>
+            <div style={{
+              background: isDark ? '#263548' : '#f3f4f6',
+              border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+              borderRadius: 6, padding: '8px 12px',
+              fontFamily: 'monospace', fontSize: 11,
+              wordBreak: 'break-all', marginBottom: 8,
+              color: isDark ? '#e2e8f0' : '#374151',
+            }}>
+              {icalUrl}
+            </div>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+              <button className="btn-secondary" onClick={() => copyText(icalUrl, setCopiedUrl)} style={{ fontSize: 12 }}>
+                {copiedUrl ? '✓ Skopiowano' : 'Kopiuj URL'}
+              </button>
+              <button className="btn-secondary" onClick={() => copyText(webcalUrl, setCopiedWebcal)} style={{ fontSize: 12 }}>
+                {copiedWebcal ? '✓ Skopiowano' : 'Kopiuj webcal://'}
+              </button>
+              <a
+                href={webcalUrl}
+                style={{
+                  padding: '7px 14px', borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  background: '#4f46e5', color: 'white', textDecoration: 'none',
+                  display: 'inline-block',
+                }}
+              >
+                Otwórz w Kalendarzu
+              </a>
+              <button className="btn-secondary" onClick={generate} style={{ fontSize: 12 }}>
+                Odśwież link
+              </button>
+            </div>
+          </div>
+
+          <div style={{
+            background: isDark ? '#1e293b' : '#f8fafc',
+            border: `1px solid ${isDark ? '#334155' : '#e2e8f0'}`,
+            borderRadius: 8, padding: '14px 16px', fontSize: 13,
+          }}>
+            <div style={{ fontWeight: 700, marginBottom: 10 }}>Jak dodać do iPhone (to samo WiFi co serwer):</div>
+            <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 2, color: isDark ? '#94a3b8' : '#374151' }}>
+              <li>Kliknij <strong>Otwórz w Kalendarzu</strong> powyżej — iPhone zapyta o dodanie</li>
+              <li>Lub ręcznie: <strong>Ustawienia → Kalendarz → Konta → Dodaj konto → Inne</strong></li>
+              <li>Wybierz <strong>Dodaj subskrybowany kalendarz</strong></li>
+              <li>Wklej skopiowany URL i naciśnij <strong>Dalej</strong></li>
+            </ol>
+            <div style={{ marginTop: 12, padding: '8px 12px', borderRadius: 6, fontSize: 12,
+              background: isDark ? '#0f172a' : '#eff6ff',
+              color: isDark ? '#60a5fa' : '#1d4ed8',
+              border: `1px solid ${isDark ? '#1e3a5f' : '#bfdbfe'}`,
+            }}>
+              iPhone i komputer z serwerem muszą być w tej samej sieci WiFi.
+              Po wdrożeniu na produkcję ustaw <code>BACKEND_URL</code> w <code>backend/.env</code>.
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const SettingsPage = () => {
   const [status, setStatus] = useState(null);
@@ -9,6 +133,7 @@ const SettingsPage = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const isDark = useDarkMode();
 
   useEffect(() => {
     api.get('/2fa/status').then(res => setStatus(res.data.totp_enabled));
@@ -74,7 +199,7 @@ const SettingsPage = () => {
 
         {message && (
           <div style={{
-            background: '#f0fdf4',
+            background: isDark ? '#14532d33' : '#f0fdf4',
             border: '1px solid #16a34a',
             color: '#16a34a',
             borderRadius: 6,
@@ -91,7 +216,7 @@ const SettingsPage = () => {
         ) : status ? (
           <>
             <div style={{
-              background: '#f0fdf4',
+              background: isDark ? '#14532d33' : '#f0fdf4',
               border: '1px solid #16a34a',
               borderRadius: 6,
               padding: '10px 14px',
@@ -128,7 +253,7 @@ const SettingsPage = () => {
         ) : (
           <>
             <div style={{
-              background: '#fef2f2',
+              background: isDark ? '#7f1d1d33' : '#fef2f2',
               border: '1px solid #ef4444',
               borderRadius: 6,
               padding: '10px 14px',
@@ -159,7 +284,8 @@ const SettingsPage = () => {
                   Lub wprowadź ręcznie klucz:
                 </p>
                 <div style={{
-                  background: '#f3f4f6',
+                  background: isDark ? '#263548' : '#f3f4f6',
+                  border: `1px solid ${isDark ? '#334155' : 'transparent'}`,
                   borderRadius: 6,
                   padding: '8px 12px',
                   fontFamily: 'monospace',
@@ -167,6 +293,7 @@ const SettingsPage = () => {
                   letterSpacing: 2,
                   marginBottom: 16,
                   wordBreak: 'break-all',
+                  color: isDark ? '#e2e8f0' : '#111',
                 }}>
                   {secret}
                 </div>
@@ -198,6 +325,8 @@ const SettingsPage = () => {
           </>
         )}
       </div>
+
+      <ICalSection isDark={isDark} />
     </div>
   );
 };

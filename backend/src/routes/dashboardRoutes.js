@@ -9,11 +9,7 @@ router.get('/', auth, async (req, res) => {
     const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
     const userId = req.user.id;
     const role = req.user.role;
-    const isAdmin = role === 'admin';
-
-    const assignmentFilter = isAdmin
-      ? ''
-      : `AND o.id IN (SELECT order_id FROM order_assignments WHERE user_id = ${userId})`;
+    const isAdmin = ['admin', 'manager'].includes(role);
 
     const [
       revenueThisMonth,
@@ -21,6 +17,7 @@ router.get('/', auth, async (req, res) => {
       upcomingOrders,
       monthlyRevenue,
       ordersByStatus,
+      weeklyDailyRevenue,
     ] = await Promise.all([
 
       isAdmin ? pool.query(
@@ -37,8 +34,8 @@ router.get('/', auth, async (req, res) => {
          FROM orders o
          WHERE o.date_from = $1
            AND o.status NOT IN ('released', 'cancelled')
-           ${assignmentFilter}`,
-        [today]
+           AND ($2 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $3))`,
+        [today, isAdmin, userId]
       ),
 
       pool.query(
@@ -51,10 +48,10 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_from >= $1
            AND o.status NOT IN ('released', 'cancelled')
-           ${assignmentFilter}
+           AND ($2 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $3))
          ORDER BY o.date_from ASC
          LIMIT 8`,
-        [today]
+        [today, isAdmin, userId]
       ),
 
       isAdmin ? pool.query(
@@ -73,9 +70,24 @@ router.get('/', auth, async (req, res) => {
         `SELECT o.status, COUNT(*) as count
         FROM orders o
         WHERE o.status IN ('in_progress', 'done')
-          ${assignmentFilter}
-        GROUP BY o.status`
+          AND ($1 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $2))
+        GROUP BY o.status`,
+        [isAdmin, userId]
       ),
+
+      isAdmin ? pool.query(
+        `SELECT
+           date_from::date as day,
+           COALESCE(SUM(price) FILTER (WHERE is_paid = TRUE AND status != 'cancelled'), 0) as revenue,
+           COALESCE(SUM(paid_cash) FILTER (WHERE status != 'cancelled'), 0) as cash,
+           COALESCE(SUM(paid_card) FILTER (WHERE status != 'cancelled'), 0) as card,
+           COUNT(*) FILTER (WHERE status != 'cancelled') as orders
+         FROM orders
+         WHERE date_from >= DATE_TRUNC('week', CURRENT_DATE)
+           AND date_from < DATE_TRUNC('week', CURRENT_DATE) + INTERVAL '7 days'
+         GROUP BY date_from::date
+         ORDER BY day ASC`
+      ) : Promise.resolve({ rows: [] }),
     ]);
 
     res.json({
@@ -84,6 +96,7 @@ router.get('/', auth, async (req, res) => {
       upcomingOrders: upcomingOrders.rows,
       monthlyRevenue: isAdmin ? monthlyRevenue.rows : [],
       ordersByStatus: ordersByStatus.rows,
+      weeklyDailyRevenue: isAdmin ? weeklyDailyRevenue.rows : [],
       isAdmin,
     });
   } catch (err) {

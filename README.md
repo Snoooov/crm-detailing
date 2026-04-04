@@ -1,790 +1,600 @@
 # Auto Detailing CRM
 
-Webowa aplikacja CRM do zarządzania firmą auto detailingu. System umożliwia kompleksowe zarządzanie zleceniami, klientami, pojazdami oraz pracownikami. Zbudowana w architekturze klient-serwer z backendem Node.js i frontendem React.
+System zarządzania warsztatem auto detailingu — zlecenia, klienci, pojazdy, pracownicy, katalog usług, maile automatyczne, raporty, kalendarz iCal.
 
 ---
 
 ## Spis treści
 
-- [Funkcjonalności](#funkcjonalności)
-- [Stack technologiczny](#stack-technologiczny)
-- [Architektura projektu](#architektura-projektu)
-- [Struktura folderów](#struktura-folderów)
-- [Wymagania systemowe](#wymagania-systemowe)
-- [Instalacja i konfiguracja](#instalacja-i-konfiguracja)
-- [Zmienne środowiskowe](#zmienne-środowiskowe)
-- [Schemat bazy danych](#schemat-bazy-danych)
-- [API — dokumentacja endpointów](#api--dokumentacja-endpointów)
-- [Autoryzacja i bezpieczeństwo](#autoryzacja-i-bezpieczeństwo)
-- [Role użytkowników](#role-użytkowników)
-- [Uruchamianie projektu](#uruchamianie-projektu)
-- [Testowanie API](#testowanie-api)
-- [Generowanie PDF](#generowanie-pdf)
-- [Rozwiązywanie problemów](#rozwiązywanie-problemów)
+1. [Technologie](#technologie)
+2. [Struktura projektu](#struktura-projektu)
+3. [Uruchomienie](#uruchomienie)
+4. [Zmienne środowiskowe](#zmienne-środowiskowe)
+5. [Schemat bazy danych](#schemat-bazy-danych)
+6. [Funkcje systemu](#funkcje-systemu)
+7. [API — endpointy](#api--endpointy)
+8. [Role użytkowników](#role-użytkowników)
+9. [Bezpieczeństwo](#bezpieczeństwo)
 
 ---
 
-## Funkcjonalności
+## Technologie
 
-### Zlecenia
-- Lista zleceń z sortowaniem po każdej kolumnie
-- Filtrowanie po statusie, zakresie dat, cenie i stanie płatności
-- Wyszukiwarka pełnotekstowa (klient, pojazd, usługa)
-- Zmiana statusu bezpośrednio z listy
-- Szczegóły zlecenia z możliwością edycji
-- Przypisywanie pracowników do zleceń
-- Obsługa płatności (gotówka / karta / podział)
-- Paginacja (20 rekordów na stronę)
-
-### Statusy zleceń
-| Status | Opis |
-|--------|------|
-| `inspection` | Oględziny / Wycena |
-| `planned` | Zaplanowane |
-| `in_progress` | W trakcie |
-| `done` | Gotowe |
-| `released` | Wydane |
-| `cancelled` | Anulowane |
-
-### Klienci
-- Lista klientów podzielona na osoby prywatne i firmy (NIP)
-- Wyszukiwarka po nazwie, telefonie, emailu
-- Szczegóły klienta z historią zleceń i pojazdów
-- Statystyki klienta (łączna wartość usług, liczba wizyt, najczęstsza usługa)
-- Statusy klienta: VIP, Stały, Zwykły
-- Notatki do klienta
-- Paginacja (15 rekordów na stronę)
-
-### Pojazdy
-- Lista pojazdów z wyszukiwarką
-- Powiązanie pojazdu z klientem
-- Historia usług pojazdu
-- Notatki do pojazdu
-- Paginacja (20 rekordów na stronę)
-
-### Dashboard
-- Przychód bieżącego miesiąca
-- Liczba zleceń na dziś
-- Liczba aktywnych zleceń
-- Wykres słupkowy przychodów z ostatnich 6 miesięcy
-- Podział zleceń według statusów
-- Lista nadchodzących zleceń
-
-### Harmonogram tygodniowy
-- Widok kalendarza tygodniowego (pon–niedz)
-- Nawigacja między tygodniami (przód / wstecz / dziś)
-- Zlecenia przypisane do dni
-- Kliknięcie zlecenia otwiera jego szczegóły
-
-### Karta przyjęcia pojazdu
-- Generowanie PDF z danymi klienta i pojazdu
-- Sekcje: dane klienta, dane pojazdu, zlecona usługa, poziom paliwa, wyposażenie, stan zewnętrzny, uwagi, zgoda, podpisy
-
-### Powiadomienia
-- Dzwonek w nawigacji z liczbą powiadomień
-- Kategorie: przeterminowane, na dziś, gotowe do wydania, jutro
-- Automatyczne odświeżanie co 60 sekund
-
-### Globalna wyszukiwarka
-- Wyszukiwanie jednocześnie w klientach, pojazdach i zleceniach
-- Wyniki pogrupowane według kategorii
-- Kliknięcie wyniku przenosi do szczegółów
-
-### Użytkownicy
-- Zarządzanie kontami pracowników (tylko admin)
-- Role: Administrator, Pracownik
-- Weryfikacja dwuetapowa (2FA) przez aplikację TOTP (Google Authenticator, Authy)
-- Pracownik widzi tylko zlecenia do których jest przypisany
-
-### Notatki
-- Notatki do klientów, pojazdów i zleceń
-- Data i godzina dodania notatki
-- Usuwanie notatek
+| Warstwa | Stack |
+|---|---|
+| Backend | Node.js 18+, Express, PostgreSQL (`pg`), JWT |
+| Autentykacja | bcryptjs, jsonwebtoken, speakeasy (TOTP 2FA), qrcode |
+| Email | nodemailer (Gmail), node-cron |
+| PDF | puppeteer |
+| Bezpieczeństwo | helmet, express-rate-limit, cors |
+| Frontend | React 19, Vite, React Router, axios |
 
 ---
 
-## Stack technologiczny
-
-### Backend
-- **Node.js** — środowisko uruchomieniowe
-- **Express.js** — framework HTTP
-- **PostgreSQL** — baza danych
-- **pg** — klient PostgreSQL dla Node.js
-- **bcryptjs** — hashowanie haseł
-- **jsonwebtoken** — autoryzacja JWT
-- **speakeasy** — kody TOTP (2FA)
-- **qrcode** — generowanie kodów QR
-- **puppeteer** — generowanie PDF
-- **helmet** — nagłówki bezpieczeństwa HTTP
-- **express-rate-limit** — ochrona przed brute force
-- **cors** — obsługa CORS
-- **dotenv** — zmienne środowiskowe
-
-### Frontend
-- **React** — biblioteka UI
-- **Vite** — bundler i dev server
-- **React Router DOM** — routing
-- **Axios** — klient HTTP
-- **React Hook Form** — obsługa formularzy
-
----
-
-## Architektura projektu
-
-```
-Przeglądarka (React + Vite)
-        ↕ HTTP/JSON (port 5173 dev)
-Backend (Express.js, port 5000)
-        ↕ SQL
-PostgreSQL (port 5432)
-```
-
-Backend udostępnia REST API. Frontend komunikuje się z backendem przez Axios. Każdy request (poza logowaniem) wymaga tokenu JWT w nagłówku `Authorization: Bearer <token>`.
-
----
-
-## Struktura folderów
+## Struktura projektu
 
 ```
 autodetailing-crm/
 ├── backend/
-│   ├── public/
-│   │   └── images/
-│   │       └── car-schema.jpg        # Schemat pojazdu do PDF
 │   ├── src/
+│   │   ├── index.js                  ← entry point, Express + rejestracja tras
 │   │   ├── config/
-│   │   │   └── db.js                 # Połączenie z PostgreSQL
-│   │   ├── controllers/
-│   │   │   ├── authController.js     # Logowanie, 2FA
-│   │   │   ├── clientController.js   # CRUD klientów
-│   │   │   ├── orderController.js    # CRUD zleceń
-│   │   │   └── vehicleController.js  # CRUD pojazdów
+│   │   │   └── db.js                 ← pool PostgreSQL + auto-migracja przy starcie
 │   │   ├── middleware/
-│   │   │   └── auth.js               # Weryfikacja JWT, middleware adminOnly
+│   │   │   └── auth.js               ← JWT: auth, adminOnly, managerOrAdmin
+│   │   ├── controllers/
+│   │   │   ├── authController.js
+│   │   │   ├── clientController.js
+│   │   │   ├── orderController.js
+│   │   │   └── vehicleController.js
 │   │   ├── models/
-│   │   │   ├── clientModel.js        # Zapytania SQL — klienci
-│   │   │   ├── orderModel.js         # Zapytania SQL — zlecenia
-│   │   │   └── vehicleModel.js       # Zapytania SQL — pojazdy
+│   │   │   ├── clientModel.js
+│   │   │   ├── orderModel.js
+│   │   │   └── vehicleModel.js
 │   │   ├── routes/
-│   │   │   ├── authRoutes.js         # POST /api/auth/login
-│   │   │   ├── assignmentRoutes.js   # Przypisania pracowników
-│   │   │   ├── clientRoutes.js       # CRUD + statystyki klientów
-│   │   │   ├── dashboardRoutes.js    # Statystyki dashboardu
-│   │   │   ├── noteRoutes.js         # Notatki
-│   │   │   ├── notificationRoutes.js # Powiadomienia
-│   │   │   ├── orderRoutes.js        # CRUD zleceń
-│   │   │   ├── pdfRoutes.js          # Generowanie PDF
-│   │   │   ├── searchRoutes.js       # Globalna wyszukiwarka
-│   │   │   ├── twoFactorRoutes.js    # Konfiguracja 2FA
-│   │   │   ├── userRoutes.js         # Zarządzanie użytkownikami
-│   │   │   └── vehicleRoutes.js      # CRUD pojazdów
-│   │   ├── services/
-│   │   │   └── pdfService.js         # Generowanie PDF przez Puppeteer
-│   │   └── index.js                  # Główny plik serwera
-│   ├── .env                          # Zmienne środowiskowe (nie commitować!)
-│   ├── package.json
-│   └── package-lock.json
-│
+│   │   │   ├── authRoutes.js
+│   │   │   ├── clientRoutes.js
+│   │   │   ├── vehicleRoutes.js
+│   │   │   ├── orderRoutes.js
+│   │   │   ├── serviceRoutes.js      ← katalog usług
+│   │   │   ├── assignmentRoutes.js
+│   │   │   ├── noteRoutes.js
+│   │   │   ├── emailRoutes.js
+│   │   │   ├── userRoutes.js
+│   │   │   ├── dashboardRoutes.js
+│   │   │   ├── notificationRoutes.js
+│   │   │   ├── searchRoutes.js
+│   │   │   ├── pdfRoutes.js
+│   │   │   ├── reportRoutes.js       ← raporty i statystyki (admin + manager)
+│   │   │   ├── icalRoutes.js         ← subskrypcja kalendarza iCal
+│   │   │   └── twoFactorRoutes.js
+│   │   └── services/
+│   │       ├── emailService.js       ← wysyłanie emaili, szablony HTML, logi
+│   │       ├── emailScheduler.js     ← cron co godzinę, automatyczne maile
+│   │       └── pdfService.js         ← generowanie PDF (puppeteer)
+│   ├── seed_orders.js                ← skrypt do generowania zleceń testowych
+│   ├── .env                          ← zmienne środowiskowe (nie commitować!)
+│   └── package.json
 └── frontend/
-    ├── public/
-    │   └── images/
-    │       └── car-schema.jpg        # Schemat pojazdu (podgląd w przeglądarce)
     ├── src/
+    │   ├── main.jsx
+    │   ├── App.jsx                   ← routing aplikacji
+    │   ├── index.css                 ← globalne style, CSS variables, dark mode
     │   ├── api/
-    │   │   └── axios.js              # Konfiguracja Axios + interceptory JWT
-    │   ├── components/
-    │   │   ├── ClientStats.jsx       # Statystyki klienta
-    │   │   ├── GlobalSearch.jsx      # Globalna wyszukiwarka
-    │   │   ├── Layout.jsx            # Główny layout z nawigacją
-    │   │   ├── NotesSection.jsx      # Sekcja notatek
-    │   │   ├── NotificationBell.jsx  # Dzwonek powiadomień
-    │   │   ├── OrderAssignments.jsx  # Przypisywanie pracowników
-    │   │   ├── Pagination.jsx        # Komponent paginacji
-    │   │   └── PaymentSection.jsx    # Sekcja płatności
+    │   │   └── axios.js              ← konfiguracja axios, interceptory JWT
+    │   ├── constants/
+    │   │   └── orderStatuses.js      ← współdzielone etykiety i kolory statusów
+    │   ├── hooks/
+    │   │   └── useDarkMode.js        ← MutationObserver na body.dark
     │   ├── context/
-    │   │   └── AuthContext.jsx       # Globalny stan autoryzacji
-    │   ├── pages/
-    │   │   ├── clients/
-    │   │   │   ├── ClientDetailPage.jsx
-    │   │   │   └── ClientsPage.jsx
-    │   │   ├── orders/
-    │   │   │   ├── OrderDetailPage.jsx
-    │   │   │   ├── OrderFormPage.jsx
-    │   │   │   ├── OrderReceptionCard.jsx
-    │   │   │   └── OrdersPage.jsx
-    │   │   ├── vehicles/
-    │   │   │   ├── VehicleDetailPage.jsx
-    │   │   │   └── VehiclesPage.jsx
-    │   │   ├── DashboardPage.jsx
-    │   │   ├── LoginPage.jsx
-    │   │   ├── SchedulePage.jsx
-    │   │   └── SettingsPage.jsx
-    │   ├── App.jsx                   # Routing aplikacji
-    │   ├── index.css                 # Globalne style
-    │   └── main.jsx                  # Punkt wejścia React
-    ├── package.json
-    └── vite.config.js
+    │   │   └── AuthContext.jsx       ← globalny stan autoryzacji
+    │   ├── components/
+    │   │   ├── Layout.jsx            ← sidebar, nawigacja, dark mode toggle
+    │   │   ├── GlobalSearch.jsx      ← wyszukiwarka globalna
+    │   │   ├── NotificationBell.jsx  ← powiadomienia (polling co 60s)
+    │   │   ├── CollapsibleOrders.jsx ← zwijana lista zleceń z paginacją
+    │   │   ├── NotesSection.jsx      ← notatki (klient/pojazd/zlecenie)
+    │   │   ├── OrderAssignments.jsx  ← przypisania pracowników
+    │   │   ├── Pagination.jsx        ← paginacja
+    │   │   ├── PaymentSection.jsx    ← płatności (gotówka/karta/faktura)
+    │   │   └── ClientStats.jsx       ← statystyki klienta
+    │   └── pages/
+    │       ├── LoginPage.jsx
+    │       ├── DashboardPage.jsx     ← różny widok wg roli, tygodniowy breakdown
+    │       ├── SchedulePage.jsx      ← harmonogram tygodniowy
+    │       ├── ReportsPage.jsx       ← raporty, wykresy, CSV (admin + manager)
+    │       ├── ServiceCatalogPage.jsx
+    │       ├── EmailsPage.jsx
+    │       ├── UsersPage.jsx         ← zarządzanie użytkownikami (admin)
+    │       ├── SettingsPage.jsx      ← ustawienia, 2FA, subskrypcja iCal
+    │       ├── orders/
+    │       │   ├── OrdersPage.jsx          ← lista pogrupowana wg statusów + kanban
+    │       │   ├── OrderDetailPage.jsx
+    │       │   ├── OrderFormPage.jsx
+    │       │   └── OrderReceptionCard.jsx  ← karta przyjęcia pojazdu (PDF)
+    │       ├── clients/
+    │       │   ├── ClientsPage.jsx
+    │       │   └── ClientDetailPage.jsx
+    │       └── vehicles/
+    │           ├── VehiclesPage.jsx
+    │           └── VehicleDetailPage.jsx
+    └── package.json
 ```
 
 ---
 
-## Wymagania systemowe
+## Uruchomienie
 
-- **Node.js** v18 lub nowszy
-- **npm** v9 lub nowszy
-- **PostgreSQL** v14 lub nowszy
-- **System operacyjny**: Windows 10/11, macOS, Linux
+### Wymagania
 
----
+- Node.js 18+
+- PostgreSQL 14+
 
-## Instalacja i konfiguracja
-
-### 1. Klonowanie / pobranie projektu
-
-```bash
-cd Documents
-# Jeśli używasz Git:
-git clone <url-repozytorium> autodetailing-crm
-cd autodetailing-crm
-
-# Lub utwórz folder ręcznie i skopiuj pliki
-```
-
-### 2. Konfiguracja bazy danych
-
-Otwórz pgAdmin 4 i wykonaj:
-
-```sql
--- Utwórz bazę danych
-CREATE DATABASE autodetailing_crm;
-
--- Przełącz się na nową bazę i wykonaj schemat
-CREATE TABLE users (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password_hash VARCHAR(255) NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    role VARCHAR(20) DEFAULT 'employee' CHECK (role IN ('admin', 'employee')),
-    totp_secret VARCHAR(255),
-    totp_enabled BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE clients (
-    id SERIAL PRIMARY KEY,
-    full_name VARCHAR(255) NOT NULL,
-    phone VARCHAR(20),
-    email VARCHAR(255),
-    nip VARCHAR(20),
-    status VARCHAR(20) DEFAULT 'normal' CHECK (status IN ('vip', 'regular', 'normal')),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE vehicles (
-    id SERIAL PRIMARY KEY,
-    client_id INTEGER NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
-    brand VARCHAR(100) NOT NULL,
-    model VARCHAR(100) NOT NULL,
-    year INTEGER,
-    color VARCHAR(50),
-    vin VARCHAR(17),
-    plate_number VARCHAR(20),
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE orders (
-    id SERIAL PRIMARY KEY,
-    client_id INTEGER NOT NULL REFERENCES clients(id),
-    vehicle_id INTEGER NOT NULL REFERENCES vehicles(id),
-    service_name VARCHAR(255) NOT NULL,
-    service_description TEXT,
-    date_from DATE,
-    date_to DATE,
-    price DECIMAL(10, 2),
-    status VARCHAR(20) DEFAULT 'inspection' CHECK (status IN ('inspection', 'planned', 'in_progress', 'done', 'released', 'cancelled')),
-    notes TEXT,
-    is_paid BOOLEAN DEFAULT FALSE,
-    paid_cash DECIMAL(10,2) DEFAULT 0,
-    paid_card DECIMAL(10,2) DEFAULT 0,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE order_assignments (
-    id SERIAL PRIMARY KEY,
-    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    assigned_at TIMESTAMP DEFAULT NOW(),
-    UNIQUE(order_id, user_id)
-);
-
-CREATE TABLE notes (
-    id SERIAL PRIMARY KEY,
-    entity_type VARCHAR(20) NOT NULL CHECK (entity_type IN ('client', 'vehicle', 'order')),
-    entity_id INTEGER NOT NULL,
-    content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX idx_notes_entity ON notes(entity_type, entity_id);
-CREATE INDEX idx_assignments_order ON order_assignments(order_id);
-CREATE INDEX idx_assignments_user ON order_assignments(user_id);
-```
-
-### 3. Tworzenie pierwszego administratora
+### Backend
 
 ```bash
 cd backend
 npm install
-
-# Wygeneruj hash hasła
-node -e "const bcrypt = require('bcryptjs'); bcrypt.hash('admin123', 10).then(h => console.log(h))"
+# Utwórz plik .env (patrz sekcja niżej)
+# Utwórz bazę danych: createdb autodetailing_crm
+npm run dev    # nodemon (development)
+npm start      # node (production)
 ```
 
-Skopiuj wygenerowany hash i wykonaj w pgAdmin:
+Backend startuje na `http://localhost:5000`.
 
-```sql
-INSERT INTO users (email, password_hash, name, role)
-VALUES ('admin@crm.pl', 'WKLEJ_HASH_TUTAJ', 'Administrator', 'admin');
-```
+> Przy każdym starcie serwer automatycznie wykonuje migrację — dodaje brakujące kolumny, tworzy nowe tabele i naprawia stare rekordy (operacje `IF NOT EXISTS`, bezpieczne dla istniejącej bazy).
 
-### 4. Instalacja zależności backendu
-
-```bash
-cd backend
-npm install
-```
-
-### 5. Instalacja zależności frontendu
+### Frontend
 
 ```bash
 cd frontend
 npm install
+npm run dev
 ```
+
+Frontend startuje na `http://localhost:5173`.
+
+### Dane testowe
+
+Aby wypełnić bazę przykładowymi zleceniami (10/tydzień od stycznia):
+
+```bash
+cd backend
+node seed_orders.js
+```
+
+> Uwaga: skrypt usuwa wszystkie istniejące zlecenia przed wstawieniem nowych.
 
 ---
 
 ## Zmienne środowiskowe
 
-Utwórz plik `backend/.env` (nigdy nie commituj tego pliku do repozytorium):
+Utwórz plik `backend/.env`:
 
 ```env
-# Serwer
 PORT=5000
 
-# Baza danych PostgreSQL
+# Baza danych
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=autodetailing_crm
 DB_USER=postgres
-DB_PASSWORD=twoje_haslo_postgres
+DB_PASSWORD=twoje_haslo
 
-# JWT — użyj długiego, losowego ciągu znaków
-JWT_SECRET=superTajnyKluczJWT2024!zmienMnieNaProdukcji
+# JWT
+JWT_SECRET=losowy_dlugi_string_min_32_znaki
+
+# Email (Gmail)
+EMAIL_USER=twoj@gmail.com
+EMAIL_PASS=haslo_aplikacji_gmail   # App Password, nie hasło konta
+EMAIL_FROM="Auto Detailing <twoj@gmail.com>"
+
+# CORS
+FRONTEND_URL=http://localhost:5173
+
+# URL backendu — używany do generowania linków iCal
+# Zostaw puste lub localhost → system użyje automatycznie wykrytego lokalnego IP sieci
+# Na produkcji ustaw pełny URL: https://crm.twojadomena.pl
+BACKEND_URL=http://localhost:5000
 ```
 
-> ⚠️ **WAŻNE**: Zmień `JWT_SECRET` na długi, losowy ciąg przed wdrożeniem produkcyjnym. Nigdy nie używaj domyślnych wartości na serwerze produkcyjnym.
+> **Gmail App Password**: Konto Google → Bezpieczeństwo → Weryfikacja dwuetapowa → Hasła do aplikacji
 
 ---
 
 ## Schemat bazy danych
 
+### Tabele tworzone ręcznie (przy pierwszym uruchomieniu)
+
+```sql
+CREATE TABLE users (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  role VARCHAR(50) DEFAULT 'employee',  -- 'admin' | 'manager' | 'employee'
+  totp_secret VARCHAR(255),
+  totp_enabled BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE clients (
+  id SERIAL PRIMARY KEY,
+  full_name VARCHAR(255) NOT NULL,
+  phone VARCHAR(50),
+  email VARCHAR(255),
+  nip VARCHAR(20),
+  status VARCHAR(50) DEFAULT 'normal',  -- 'vip' | 'regular' | 'normal'
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE vehicles (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+  brand VARCHAR(100),
+  model VARCHAR(100),
+  year INTEGER,
+  color VARCHAR(100),
+  vin VARCHAR(50),
+  plate_number VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE orders (
+  id SERIAL PRIMARY KEY,
+  client_id INTEGER REFERENCES clients(id),
+  vehicle_id INTEGER REFERENCES vehicles(id),
+  service_catalog_id INTEGER REFERENCES service_catalog(id) ON DELETE SET NULL,
+  service_name VARCHAR(255) NOT NULL,
+  service_description TEXT,
+  date_from DATE,
+  date_to DATE,
+  price DECIMAL(10,2),
+  status VARCHAR(50) DEFAULT 'inspection',
+  notes TEXT,
+  is_paid BOOLEAN DEFAULT FALSE,
+  paid_cash DECIMAL(10,2) DEFAULT 0,
+  paid_card DECIMAL(10,2) DEFAULT 0,
+  invoice_number VARCHAR(100),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE order_assignments (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  assigned_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(order_id, user_id)
+);
+
+CREATE TABLE order_history (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+  user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+  user_name VARCHAR(255),
+  changes JSONB NOT NULL DEFAULT '[]',
+  changed_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE service_catalog (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  description TEXT,
+  base_price DECIMAL(10,2),
+  active BOOLEAN DEFAULT TRUE,
+  sort_order INTEGER DEFAULT 0,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE notes (
+  id SERIAL PRIMARY KEY,
+  entity_type VARCHAR(50) NOT NULL,  -- 'client' | 'vehicle' | 'order'
+  entity_id INTEGER NOT NULL,
+  content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE email_templates (
+  id SERIAL PRIMARY KEY,
+  type VARCHAR(100) UNIQUE NOT NULL,
+  name VARCHAR(255),
+  subject VARCHAR(500),
+  body TEXT,
+  enabled BOOLEAN DEFAULT TRUE,
+  delay_days INTEGER DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE email_logs (
+  id SERIAL PRIMARY KEY,
+  order_id INTEGER REFERENCES orders(id),
+  client_id INTEGER REFERENCES clients(id),
+  email_type VARCHAR(100),
+  recipient_email VARCHAR(255),
+  subject VARCHAR(500),
+  status VARCHAR(50),  -- 'sent' | 'error' | 'disabled'
+  error_message TEXT,
+  sent_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Indeksy
+CREATE INDEX idx_orders_client_id ON orders(client_id);
+CREATE INDEX idx_orders_vehicle_id ON orders(vehicle_id);
+CREATE INDEX idx_orders_date_from ON orders(date_from);
+CREATE INDEX idx_orders_status ON orders(status);
+CREATE INDEX idx_orders_is_paid ON orders(is_paid);
+CREATE INDEX idx_vehicles_client_id ON vehicles(client_id);
+CREATE INDEX idx_order_assignments_user_id ON order_assignments(user_id);
+CREATE INDEX idx_order_assignments_order_id ON order_assignments(order_id);
+CREATE INDEX idx_email_logs_order_id ON email_logs(order_id);
+CREATE INDEX idx_email_logs_type ON email_logs(email_type);
+CREATE INDEX idx_order_history_order ON order_history(order_id);
+CREATE INDEX idx_notes_entity ON notes(entity_type, entity_id);
 ```
-users
-├── id (PK)
-├── email (UNIQUE)
-├── password_hash
-├── name
-├── role (admin | employee)
-├── totp_secret
-├── totp_enabled
-└── created_at
 
-clients
-├── id (PK)
-├── full_name
-├── phone
-├── email
-├── nip (opcjonalnie — firmy)
-├── status (vip | regular | normal)
-└── created_at
+### Dane startowe — szablony emaili
 
-vehicles
-├── id (PK)
-├── client_id (FK → clients)
-├── brand
-├── model
-├── year
-├── color
-├── vin
-├── plate_number
-└── created_at
-
-orders
-├── id (PK)
-├── client_id (FK → clients)
-├── vehicle_id (FK → vehicles)
-├── service_name
-├── service_description
-├── date_from
-├── date_to
-├── price
-├── status (inspection | planned | in_progress | done | released | cancelled)
-├── notes
-├── is_paid
-├── paid_cash
-├── paid_card
-└── created_at
-
-order_assignments
-├── id (PK)
-├── order_id (FK → orders)
-├── user_id (FK → users)
-└── assigned_at
-
-notes
-├── id (PK)
-├── entity_type (client | vehicle | order)
-├── entity_id
-├── content
-└── created_at
+```sql
+INSERT INTO email_templates (type, name, subject, body, enabled, delay_days) VALUES
+  ('confirmation', 'Potwierdzenie rezerwacji',
+   'Potwierdzenie przyjęcia pojazdu — {{service_name}}',
+   '<p>Dzień dobry {{client_name}},</p><p>Potwierdzamy przyjęcie pojazdu {{vehicle_brand}} {{vehicle_model}} ({{plate_number}}) na usługę: <strong>{{service_name}}</strong>.</p><p>Termin: {{date_from}}</p><p>Dziękujemy za zaufanie!</p>',
+   true, 0),
+  ('ready', 'Pojazd gotowy do odbioru',
+   'Twój pojazd jest gotowy — {{service_name}}',
+   '<p>Dzień dobry {{client_name}},</p><p>Informujemy, że Twój pojazd {{vehicle_brand}} {{vehicle_model}} jest gotowy do odbioru.</p><p>Zapraszamy!</p>',
+   true, 0),
+  ('reminder_24h', 'Przypomnienie o wizycie',
+   'Przypomnienie — jutro wizyta w Auto Detailing',
+   '<p>Dzień dobry {{client_name}},</p><p>Przypominamy o jutrzejszej wizycie: <strong>{{service_name}}</strong>.</p><p>Do zobaczenia!</p>',
+   true, 0),
+  ('followup_short', 'Follow-up krótki (4 dni)',
+   'Jak oceniasz naszą usługę?',
+   '<p>Dzień dobry {{client_name}},</p><p>Minęło kilka dni od wykonania usługi {{service_name}}. Będziemy wdzięczni za opinię!</p>',
+   true, 4),
+  ('followup_long', 'Follow-up długi (30 dni)',
+   'Czas na kolejny detailing?',
+   '<p>Dzień dobry {{client_name}},</p><p>Minął miesiąc od ostatniej wizyty. Zapraszamy ponownie!</p>',
+   true, 30);
 ```
 
-**Relacje:**
-- Klient → wiele pojazdów (1:N)
-- Klient → wiele zleceń (1:N)
-- Pojazd → wiele zleceń (1:N)
-- Zlecenie → wielu pracowników przez `order_assignments` (N:M)
-- Notatki → polimorficzne (klient / pojazd / zlecenie)
+### Pierwsze konto admina
+
+```bash
+# Wygeneruj hash hasła
+node -e "require('bcryptjs').hash('twoje_haslo', 10).then(console.log)"
+```
+
+```sql
+INSERT INTO users (email, password_hash, name, role)
+VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
+```
 
 ---
 
-## API — dokumentacja endpointów
-
-Wszystkie endpointy (poza `/api/auth/login` i `/api/health`) wymagają nagłówka:
-```
-Authorization: Bearer <token>
-```
-
-### Autoryzacja
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| POST | `/api/auth/login` | Logowanie, zwraca JWT token |
-
-### Klienci
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/clients` | Lista klientów (`?search=`) |
-| GET | `/api/clients/:id` | Szczegóły klienta z pojazdami i zleceniami |
-| GET | `/api/clients/:id/stats` | Statystyki klienta |
-| POST | `/api/clients` | Utwórz klienta |
-| PUT | `/api/clients/:id` | Edytuj klienta |
-| DELETE | `/api/clients/:id` | Usuń klienta |
-
-### Pojazdy
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/vehicles` | Lista pojazdów (`?search=`, `?client_id=`) |
-| GET | `/api/vehicles/:id` | Szczegóły pojazdu |
-| POST | `/api/vehicles` | Utwórz pojazd |
-| PUT | `/api/vehicles/:id` | Edytuj pojazd |
-| DELETE | `/api/vehicles/:id` | Usuń pojazd |
+## Funkcje systemu
 
 ### Zlecenia
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/orders` | Lista zleceń (`?search=`) |
-| GET | `/api/orders/:id` | Szczegóły zlecenia |
-| POST | `/api/orders` | Utwórz zlecenie (tylko admin) |
-| PUT | `/api/orders/:id` | Edytuj zlecenie (tylko admin) |
-| PATCH | `/api/orders/:id/status` | Zmień status zlecenia |
-| DELETE | `/api/orders/:id` | Usuń zlecenie (tylko admin) |
+- Tworzenie, edycja, usuwanie, duplikowanie
+- 6 statusów: `inspection` → `planned` → `in_progress` → `done` → `released` / `cancelled`
+- Lista główna pogrupowana wg statusów (10 najwcześniejszych / grupę, paginacja)
+- Widok Kanban z drag & drop między kolumnami (też paginacja 10/kolumnę)
+- Wybór usługi z katalogu lub własna nazwa
+- Sekcja płatności: gotówka + karta + numer faktury
+- Historia zmian (audit log)
+- Masowa zmiana statusu (bulk) z checkboxami
+- Eksport listy do CSV
+- Notatki, przypisywanie pracowników
+- Generowanie karty przyjęcia pojazdu (PDF)
+- Automatyczne emaile przy tworzeniu i przy statusie `done`
+
+### Klienci
+- CRUD z historią zleceń i pojazdów
+- Statystyki: łączna wartość, liczba wizyt, najczęstsza usługa, wykres miesięczny
+- Statusy: `normal`, `regular`, `vip`
+- Notatki
+
+### Pojazdy
+- CRUD przypisane do klienta
+- Historia usług
+- Notatki
+
+### Raporty (admin + manager)
+- Przedziały: tydzień, miesiąc, poprzedni miesiąc, rok, własny zakres dat
+- Przychód, liczba zleceń, wartość średnia, podział gotówka/karta
+- Wykres dzienny przychodów
+- Top 10 usług (liczba i wartość)
+- Ranking pracowników
+- Eksport do CSV
+
+### Katalog usług (admin)
+- Zarządzanie usługami (nazwa, opis, cena bazowa, kolejność)
+- Aktywacja / deaktywacja
+
+### Harmonogram
+- Widok tygodniowy (pon–ndz), nawigacja między tygodniami
+- Kolory wg statusu
+
+### Dashboard
+- Przychód miesiąca i tygodnia (admin + manager)
+- Zlecenia na dziś / aktywne (filtrowane wg roli)
+- Wykres przychodów 6 miesięcy (admin + manager)
+- Tygodniowy breakdown (gotówka/karta/dzień)
+
+### Powiadomienia
+- Dzwonek z licznikiem, polling co 60s
+- 4 kategorie: przeterminowane, na dziś, gotowe do wydania, jutro
+
+### Wyszukiwarka globalna
+- Klienci, pojazdy, zlecenia jednocześnie
+- Filtrowanie po zakresie dat, debounce 300ms
+
+### Kalendarz iCal
+- Generowanie osobistego linku subskrypcji w Ustawieniach
+- Działa z iPhone (Kalendarz), Google Calendar, Outlook
+- Admin/manager widzi wszystkie zlecenia, pracownik tylko swoje
+- Backend automatycznie wykrywa lokalny IP sieci (iPhone na tym samym WiFi może subskrybować bez konfiguracji)
+- Na produkcji: ustaw `BACKEND_URL` w `.env`
+
+### Panel mailowy (admin)
+- Edycja szablonów HTML
+- Historia wysłanych z paginacją
+- Wysyłanie testowe per szablon
+- Ręczne uruchamianie schedulera
+
+### 2FA (TOTP)
+- Konfiguracja przez QR code (Google Authenticator, Authy)
+- Per-użytkownik, opcjonalne
+
+---
+
+## API — endpointy
+
+Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (oprócz `/api/auth/login`, `/api/health` i `/api/ical/:userId/:token`).
+
+### Autentykacja
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| POST | `/api/auth/login` | Logowanie (email + hasło + opcjonalnie TOTP) |
+
+### Klienci
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/clients` | Lista (`?search=`) |
+| POST | `/api/clients` | Nowy klient |
+| GET | `/api/clients/:id` | Szczegóły + historia |
+| PUT | `/api/clients/:id` | Edycja |
+| DELETE | `/api/clients/:id` | Usuń (blokada gdy ma zlecenia) |
+| GET | `/api/clients/:id/stats` | Statystyki klienta |
+
+### Pojazdy
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/vehicles` | Lista (`?search=`, `?client_id=`) |
+| POST | `/api/vehicles` | Nowy pojazd |
+| GET | `/api/vehicles/:id` | Szczegóły |
+| PUT | `/api/vehicles/:id` | Edycja |
+| DELETE | `/api/vehicles/:id` | Usuń |
+
+### Zlecenia
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/orders` | Lista (`?search=`, `?date_from=`, `?date_to=`) |
+| POST | `/api/orders` | Nowe zlecenie |
+| GET | `/api/orders/:id` | Szczegóły |
+| PUT | `/api/orders/:id` | Edycja |
+| PATCH | `/api/orders/:id/status` | Zmiana statusu |
+| DELETE | `/api/orders/:id` | Usuń (tylko admin) |
+| GET | `/api/orders/:id/history` | Historia zmian (admin + manager) |
+| GET | `/api/orders/export/csv` | Eksport CSV (admin) |
+
+### Raporty
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/reports` | Statystyki (`?from=`, `?to=`) — admin + manager |
+
+### Katalog usług
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/services` | Lista aktywnych |
+| GET | `/api/services/all` | Wszystkie (admin) |
+| POST | `/api/services` | Dodaj (admin) |
+| PUT | `/api/services/:id` | Edycja (admin) |
+| DELETE | `/api/services/:id` | Usuń (admin) |
 
 ### Przypisania pracowników
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/assignments/orders/:orderId` | Pobierz przypisanych pracowników |
-| POST | `/api/assignments/orders/:orderId` | Przypisz pracownika (`{ user_id }`) |
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/assignments/orders/:orderId` | Lista przypisanych |
+| POST | `/api/assignments/orders/:orderId` | Przypisz pracownika |
 | DELETE | `/api/assignments/orders/:orderId/users/:userId` | Usuń przypisanie |
 
 ### Notatki
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/notes/:entityType/:entityId` | Pobierz notatki (`client`, `vehicle`, `order`) |
-| POST | `/api/notes/:entityType/:entityId` | Dodaj notatkę (`{ content }`) |
-| DELETE | `/api/notes/:id` | Usuń notatkę |
-
-### Dashboard
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/dashboard` | Statystyki dashboardu |
-
-### Wyszukiwarka
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/search?q=` | Globalne wyszukiwanie (min. 2 znaki) |
-
-### Powiadomienia
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/notifications` | Lista aktywnych powiadomień |
-
-### PDF
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/pdf/orders/:id/reception` | Generuj kartę przyjęcia pojazdu (PDF) |
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/notes/:entityType/:entityId` | Notatki |
+| POST | `/api/notes/:entityType/:entityId` | Dodaj |
+| DELETE | `/api/notes/:id` | Usuń |
 
 ### Użytkownicy (tylko admin)
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/users` | Lista użytkowników |
-| POST | `/api/users` | Utwórz użytkownika |
-| PUT | `/api/users/:id` | Edytuj użytkownika |
-| DELETE | `/api/users/:id` | Usuń użytkownika |
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/users` | Lista |
+| POST | `/api/users` | Nowy użytkownik |
+| PUT | `/api/users/:id` | Edycja |
+| DELETE | `/api/users/:id` | Usuń |
 
-### 2FA
-| Metoda | Endpoint | Opis |
-|--------|----------|------|
-| GET | `/api/2fa/status` | Status 2FA użytkownika |
-| POST | `/api/2fa/setup` | Wygeneruj sekret i kod QR |
-| POST | `/api/2fa/enable` | Włącz 2FA (`{ token }`) |
-| POST | `/api/2fa/disable` | Wyłącz 2FA (`{ token }`) |
+### Maile (tylko admin)
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/emails/templates` | Lista szablonów |
+| PUT | `/api/emails/templates/:id` | Edycja szablonu |
+| GET | `/api/emails/logs` | Historia wysłanych |
+| POST | `/api/emails/send/:orderId/:type` | Wyślij ręcznie |
+| POST | `/api/emails/test` | Wyślij mail testowy |
+| POST | `/api/emails/run-jobs` | Uruchom scheduler |
 
----
+### Kalendarz iCal
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/ical/token` | Generuj URL subskrypcji (wymaga JWT) |
+| GET | `/api/ical/:userId/:token` | Plik `.ics` (publiczny, bez JWT) |
 
-## Autoryzacja i bezpieczeństwo
-
-### JWT
-- Token ważny przez **8 godzin**
-- Przechowywany w `localStorage`
-- Automatycznie dołączany do każdego requestu przez interceptor Axios
-- Przy wygaśnięciu (błąd 401) użytkownik jest automatycznie przekierowywany na stronę logowania
-
-### Ochrona przed atakami
-- **SQL Injection** — wszystkie zapytania używają parametryzowanych placeholderów (`$1, $2...`)
-- **Brute force** — rate limiting: max 20 prób logowania / 15 minut, max 200 requestów API / minutę
-- **XSS / nagłówki** — Helmet.js ustawia bezpieczne nagłówki HTTP
-- **Hasła** — hashowane bcrypt z salt rounds = 10
-
-### 2FA (TOTP)
-Weryfikacja dwuetapowa przez aplikację authenticator (Google Authenticator, Authy):
-1. Wejdź w **Ustawienia → Skonfiguruj 2FA**
-2. Zeskanuj kod QR w aplikacji authenticator
-3. Potwierdź kodem 6-cyfrowym
-4. Przy każdym logowaniu po haśle wymagany jest kod TOTP
+### Pozostałe
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/search` | Globalna wyszukiwarka (`?q=`, `?date_from=`, `?date_to=`) |
+| GET | `/api/dashboard` | Dane dashboardu (filtrowane wg roli) |
+| GET | `/api/notifications` | Powiadomienia (filtrowane wg roli) |
+| GET | `/api/pdf/orders/:id/reception` | PDF karty przyjęcia |
+| POST | `/api/2fa/setup` | Generuj secret + QR |
+| POST | `/api/2fa/enable` | Włącz 2FA |
+| POST | `/api/2fa/disable` | Wyłącz 2FA |
+| GET | `/api/2fa/status` | Status 2FA |
+| GET | `/api/health` | Health check |
 
 ---
 
 ## Role użytkowników
 
-### Administrator (`admin`)
-- Widzi wszystkie zlecenia, klientów, pojazdy
-- Tworzy, edytuje i usuwa zlecenia
-- Zarządza użytkownikami (dodawanie, edycja, usuwanie)
-- Przypisuje pracowników do zleceń
-- Generuje karty przyjęcia PDF
-
-### Pracownik (`employee`)
-- Widzi **tylko zlecenia do których jest przypisany**
-- Może zmieniać status przypisanych zleceń
-- Nie może tworzyć, edytować ani usuwać zleceń
-- Nie ma dostępu do zarządzania użytkownikami
-- Ma dostęp do klientów i pojazdów (widok)
-
----
-
-## Uruchamianie projektu
-
-### Development
-
-Otwórz **dwa osobne terminale**:
-
-**Terminal 1 — Backend:**
-```bash
-cd autodetailing-crm/backend
-npm run dev
-```
-Serwer uruchomi się na `http://localhost:5000`
-
-**Terminal 2 — Frontend:**
-```bash
-cd autodetailing-crm/frontend
-npm run dev
-```
-Aplikacja będzie dostępna na `http://localhost:5173`
-
-### Produkcja
-
-**Backend:**
-```bash
-cd backend
-npm start
-```
-
-**Frontend (build):**
-```bash
-cd frontend
-npm run build
-# Pliki statyczne trafią do folderu dist/
-# Serwuj je przez nginx lub inny serwer HTTP
-```
-
-### Domyślne dane logowania (development)
-```
-Email:  admin@crm.pl
-Hasło:  admin123
-```
-> ⚠️ Zmień hasło przed wdrożeniem produkcyjnym!
+| Uprawnienie | admin | manager | employee |
+|---|:---:|:---:|:---:|
+| Widzi wszystkie zlecenia | ✓ | ✓ | — (tylko przypisane) |
+| Tworzy zlecenia | ✓ | ✓ | ✓ |
+| Edytuje zlecenia | ✓ | ✓ | ✓ (tylko przypisane) |
+| Usuwa zlecenia | ✓ | — | — |
+| Duplikuje zlecenia | ✓ | ✓ | — |
+| Historia zmian zlecenia | ✓ | ✓ | — |
+| Eksport CSV | ✓ | — | — |
+| Bulk zmiana statusu | ✓ | ✓ | — |
+| Raporty i statystyki | ✓ | ✓ | — |
+| Widzi przychody na dashboardzie | ✓ | ✓ | — |
+| CRUD klientów/pojazdów | ✓ | ✓ | ✓ |
+| Katalog usług | ✓ | ✓ (widok) | — |
+| Historia zleceń klienta/pojazdu | ✓ | ✓ | — |
+| Panel mailowy | ✓ | ✓ (widok) | — |
+| Zarządzanie użytkownikami | ✓ | — | — |
+| Subskrypcja iCal | ✓ | ✓ | ✓ |
 
 ---
 
-## Testowanie API
+## Bezpieczeństwo
 
-### PowerShell (Windows)
+- **JWT** — tokeny 8h; wygaśnięcie pokazuje komunikat zamiast cichego przekierowania
+- **bcrypt** — hashowanie haseł (rounds: 10)
+- **2FA TOTP** — opcjonalne per użytkownik
+- **Rate limiting** — login: 20 req/15min, API: 200 req/min
+- **Helmet** — bezpieczne nagłówki HTTP
+- **CORS** — skonfigurowany na `FRONTEND_URL`
+- **Parametryzowane zapytania SQL** — ochrona przed SQL injection
+- **Walidacja inputu** — statusy, daty, ceny, formaty emaili, rozmiar body
 
-```powershell
-# Logowanie i pobranie tokenu
-$response = Invoke-WebRequest -UseBasicParsing `
-  -Uri "http://localhost:5000/api/auth/login" `
-  -Method POST `
-  -ContentType "application/json" `
-  -Body '{"email":"admin@crm.pl","password":"admin123"}'
-$token = ($response.Content | ConvertFrom-Json).token
+### Plik .env
 
-# Test health check
-Invoke-WebRequest -UseBasicParsing -Uri "http://localhost:5000/api/health"
+Upewnij się, że `.env` jest w `.gitignore`:
 
-# Pobierz listę klientów
-Invoke-WebRequest -UseBasicParsing `
-  -Uri "http://localhost:5000/api/clients" `
-  -Headers @{Authorization="Bearer $token"}
-
-# Dodaj klienta
-Invoke-WebRequest -UseBasicParsing `
-  -Uri "http://localhost:5000/api/clients" `
-  -Method POST `
-  -ContentType "application/json" `
-  -Headers @{Authorization="Bearer $token"} `
-  -Body '{"full_name":"Jan Kowalski","phone":"500100200","status":"regular"}'
-
-# Dodaj zlecenie
-Invoke-WebRequest -UseBasicParsing `
-  -Uri "http://localhost:5000/api/orders" `
-  -Method POST `
-  -ContentType "application/json" `
-  -Headers @{Authorization="Bearer $token"} `
-  -Body '{"client_id":1,"vehicle_id":1,"service_name":"Detailing","price":500,"status":"inspection"}'
-
-# Zmień status zlecenia
-Invoke-WebRequest -UseBasicParsing `
-  -Uri "http://localhost:5000/api/orders/1/status" `
-  -Method PATCH `
-  -ContentType "application/json" `
-  -Headers @{Authorization="Bearer $token"} `
-  -Body '{"status":"planned"}'
 ```
-
-### curl (macOS / Linux)
-
-```bash
-# Logowanie
-TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"admin@crm.pl","password":"admin123"}' | jq -r '.token')
-
-# Pobierz zlecenia
-curl http://localhost:5000/api/orders \
-  -H "Authorization: Bearer $TOKEN"
-
-# Wyszukiwarka
-curl "http://localhost:5000/api/search?q=kowalski" \
-  -H "Authorization: Bearer $TOKEN"
+backend/.env
+.env
 ```
-
----
-
-## Generowanie PDF
-
-Karta przyjęcia pojazdu generowana jest przez **Puppeteer** (headless Chromium).
-
-### Wymagania
-- Plik `backend/public/images/car-schema.jpg` musi istnieć (schemat pojazdu)
-- Puppeteer pobiera Chromium podczas instalacji (`npm install`)
-
-### Jak wygenerować kartę
-1. Wejdź w szczegóły dowolnego zlecenia
-2. Kliknij przycisk **Karta przyjęcia**
-3. Na stronie podglądu kliknij **Generuj PDF**
-4. PDF otworzy się w nowej karcie przeglądarki
-
-### Rozwiązywanie problemów z PDF
-Jeśli PDF się nie generuje sprawdź logi backendu — najczęstsze problemy:
-- Brakujący plik `car-schema.jpg` w `backend/public/images/`
-- Puppeteer nie zainstalowany — uruchom `npm install` w folderze `backend`
-- Na serwerze Linux może być wymagane: `apt-get install -y chromium-browser`
-
----
-
-## Rozwiązywanie problemów
-
-### `psql --version` nie działa (Windows)
-Dodaj PostgreSQL do PATH:
-1. Otwórz **Zmienne środowiskowe systemu**
-2. Edytuj zmienną **Path** w sekcji systemowej
-3. Dodaj: `C:\Program Files\PostgreSQL\16\bin` (zmień numer wersji)
-4. Zamknij i otwórz terminal ponownie
-
-### `npm` nie działa w PowerShell
-```powershell
-Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
-```
-Lub użyj **Command Prompt** zamiast PowerShell.
-
-### Błąd połączenia z bazą danych
-Sprawdź w pliku `.env`:
-- Poprawne hasło (`DB_PASSWORD`)
-- PostgreSQL działa — sprawdź w pgAdmin lub Services
-- Baza `autodetailing_crm` istnieje
-
-### Biały ekran / błędy 401 po restarcie
-Token JWT wygasł. Wejdź na `http://localhost:5173/login` i zaloguj się ponownie.
-
-### CORS błędy
-Upewnij się że w `backend/src/index.js` CORS jest skonfigurowany przed Helmet:
-```javascript
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-app.use(helmet({ crossOriginResourcePolicy: false }));
-```
-
-### Puppeteer nie generuje PDF na Linux/Mac
-```bash
-# Ubuntu/Debian
-sudo apt-get install -y chromium-browser fonts-liberation libappindicator3-1
-
-# macOS — Puppeteer pobiera własne Chromium, powinno działać bez dodatkowych kroków
-```
-
-### Port już zajęty
-```bash
-# Windows — znajdź i zakończ proces na porcie 5000
-netstat -ano | findstr :5000
-taskkill /PID <numer_pid> /F
-
-# macOS/Linux
-lsof -ti:5000 | xargs kill
-```
-
----
-
-## Dobre praktyki
-
-- Nie commituj pliku `.env` do repozytorium — dodaj go do `.gitignore`
-- Regularnie twórz kopię zapasową bazy danych (`pg_dump autodetailing_crm > backup.sql`)
-- Zmieniaj `JWT_SECRET` na produkcji na długi, losowy ciąg
-- Używaj HTTPS na produkcji
-- Włącz 2FA na koncie administratora
-
----
-
-## Licencja
-
-Projekt stworzony na potrzeby wewnętrzne firmy Auto Detailing. Wszelkie prawa zastrzeżone.

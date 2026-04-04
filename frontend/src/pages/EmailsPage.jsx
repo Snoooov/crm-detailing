@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
+import Pagination from '../components/Pagination.jsx';
+import useDarkMode from '../hooks/useDarkMode.js';
 
 const TYPE_NAMES = {
   confirmation: 'Potwierdzenie rezerwacji',
@@ -20,6 +22,10 @@ const EmailsPage = () => {
   const [saving, setSaving] = useState(false);
   const [runningJobs, setRunningJobs] = useState(false);
   const [message, setMessage] = useState('');
+  const [testLoading, setTestLoading] = useState(false);
+  const [logsPage, setLogsPage] = useState(1);
+  const LOGS_PER_PAGE = 20;
+  const isDark = useDarkMode();
 
   useEffect(() => {
     api.get('/emails/templates').then(res => setTemplates(res.data));
@@ -30,6 +36,16 @@ const EmailsPage = () => {
     setEditingId(template.id);
     setEditForm({ ...template });
   };
+
+  const handleTestByType = async (type) => {
+    try {
+        const res = await api.post('/emails/test', { type });
+        setMessage(res.data.message);
+        setTimeout(() => setMessage(''), 5000);
+    } catch (err) {
+        setMessage('Błąd: ' + (err.response?.data?.error || 'nieznany błąd'));
+    }
+    };
 
   const handleSave = async () => {
     setSaving(true);
@@ -74,22 +90,45 @@ const EmailsPage = () => {
     fontSize: 14,
   });
 
+  const handleTestEmail = async () => {
+    setTestLoading(true);
+    try {
+        const res = await api.post('/emails/test');
+        setMessage(res.data.message);
+        setTimeout(() => setMessage(''), 5000);
+    } catch (err) {
+        setMessage('Błąd: ' + (err.response?.data?.error || 'nieznany błąd'));
+    } finally {
+        setTestLoading(false);
+    }
+    };
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700 }}>Maile automatyczne</h1>
-        <button
-          className="btn-secondary"
-          onClick={handleRunJobs}
-          disabled={runningJobs}
-        >
-          {runningJobs ? 'Uruchamianie...' : '▶ Uruchom teraz'}
-        </button>
-      </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+            <button
+            className="btn-secondary"
+            onClick={handleTestEmail}
+            disabled={testLoading}
+            >
+            {testLoading ? 'Wysyłanie...' : '✉️ Wyślij testowy mail'}
+            </button>
+            <button
+            className="btn-secondary"
+            onClick={handleRunJobs}
+            disabled={runningJobs}
+            >
+            {runningJobs ? 'Uruchamianie...' : '▶ Uruchom teraz'}
+            </button>
+        </div>
+        </div>
 
       {message && (
         <div style={{
-          background: '#f0fdf4', border: '1px solid #16a34a', color: '#16a34a',
+          background: isDark ? '#14532d33' : '#f0fdf4',
+          border: '1px solid #16a34a', color: '#16a34a',
           borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, fontWeight: 600,
         }}>
           ✓ {message}
@@ -97,7 +136,7 @@ const EmailsPage = () => {
       )}
 
       {/* Taby */}
-      <div style={{ borderBottom: '1px solid #e5e7eb', marginBottom: 24, display: 'flex', gap: 8 }}>
+      <div style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: 24, display: 'flex', gap: 8 }}>
         <button style={tabStyle('templates')} onClick={() => setActiveTab('templates')}>Szablony</button>
         <button style={tabStyle('logs')} onClick={() => setActiveTab('logs')}>
           Historia ({logs.length})
@@ -123,7 +162,7 @@ const EmailsPage = () => {
                     </label>
                   </div>
 
-                  <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 12, background: '#f9fafb', padding: '8px 10px', borderRadius: 6 }}>
+                  <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#6b7280', marginBottom: 12, background: isDark ? '#263548' : '#f9fafb', border: isDark ? '1px solid #334155' : 'none', padding: '8px 10px', borderRadius: 6 }}>
                     Dostępne zmienne: <code>{VARIABLES_HELP}</code>
                   </div>
 
@@ -159,27 +198,35 @@ const EmailsPage = () => {
                       <h2 style={{ fontSize: 15, fontWeight: 600 }}>{TYPE_NAMES[template.type]}</h2>
                       <span style={{
                         fontSize: 11, fontWeight: 700, borderRadius: 99, padding: '2px 8px',
-                        background: template.enabled ? '#f0fdf4' : '#f9fafb',
-                        color: template.enabled ? '#16a34a' : '#9ca3af',
-                        border: `1px solid ${template.enabled ? '#16a34a' : '#e5e7eb'}`,
+                        background: template.enabled ? (isDark ? '#14532d33' : '#f0fdf4') : (isDark ? '#1e293b' : '#f9fafb'),
+                        color: template.enabled ? '#16a34a' : (isDark ? '#64748b' : '#9ca3af'),
+                        border: `1px solid ${template.enabled ? '#16a34a' : (isDark ? '#334155' : '#e5e7eb')}`,
                       }}>
                         {template.enabled ? 'Włączony' : 'Wyłączony'}
                       </span>
                     </div>
-                    <div style={{ fontSize: 13, color: '#374151', marginBottom: 4 }}>
+                    <div style={{ fontSize: 13, color: isDark ? '#cbd5e1' : '#374151', marginBottom: 4 }}>
                       <strong>Temat:</strong> {template.subject}
                     </div>
-                    <div style={{ fontSize: 12, color: '#6b7280', whiteSpace: 'pre-wrap', maxHeight: 60, overflow: 'hidden' }}>
+                    <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#6b7280', whiteSpace: 'pre-wrap', maxHeight: 60, overflow: 'hidden' }}>
                       {template.body.substring(0, 120)}...
                     </div>
                   </div>
-                  <button
-                    className="btn-secondary"
-                    style={{ flexShrink: 0, marginLeft: 16 }}
-                    onClick={() => handleEdit(template)}
-                  >
-                    Edytuj
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, flexShrink: 0, marginLeft: 16 }}>
+                    <button
+                        className="btn-secondary"
+                        style={{ fontSize: 12, padding: '6px 12px' }}
+                        onClick={() => handleTestByType(template.type)}
+                    >
+                        ✉️ Test
+                    </button>
+                    <button
+                        className="btn-secondary"
+                        onClick={() => handleEdit(template)}
+                    >
+                        Edytuj
+                    </button>
+                    </div>
                 </div>
               )}
             </div>
@@ -193,37 +240,47 @@ const EmailsPage = () => {
           {logs.length === 0 ? (
             <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Brak wysłanych maili</div>
           ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th>Data wysłania</th>
-                  <th>Klient</th>
-                  <th>Email</th>
-                  <th>Typ</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {logs.map(log => (
-                  <tr key={log.id}>
-                    <td style={{ whiteSpace: 'nowrap', fontSize: 13 }}>{formatDate(log.sent_at)}</td>
-                    <td>{log.client_name || '—'}</td>
-                    <td style={{ fontSize: 13 }}>{log.recipient_email}</td>
-                    <td style={{ fontSize: 13 }}>{TYPE_NAMES[log.email_type] || log.email_type}</td>
-                    <td>
-                      <span style={{
-                        fontSize: 12, fontWeight: 600, borderRadius: 99, padding: '2px 8px',
-                        background: log.status === 'sent' ? '#f0fdf4' : '#fef2f2',
-                        color: log.status === 'sent' ? '#16a34a' : '#ef4444',
-                        border: `1px solid ${log.status === 'sent' ? '#16a34a' : '#ef4444'}`,
-                      }}>
-                        {log.status === 'sent' ? '✓ Wysłany' : '✗ Błąd'}
-                      </span>
-                    </td>
+            <>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Data wysłania</th>
+                    <th>Klient</th>
+                    <th>Email</th>
+                    <th>Typ</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {logs
+                    .slice((logsPage - 1) * LOGS_PER_PAGE, logsPage * LOGS_PER_PAGE)
+                    .map(log => (
+                      <tr key={log.id}>
+                        <td style={{ whiteSpace: 'nowrap', fontSize: 13 }}>{formatDate(log.sent_at)}</td>
+                        <td>{log.client_name || '—'}</td>
+                        <td style={{ fontSize: 13 }}>{log.recipient_email}</td>
+                        <td style={{ fontSize: 13 }}>{TYPE_NAMES[log.email_type] || log.email_type}</td>
+                        <td>
+                          <span style={{
+                            fontSize: 12, fontWeight: 600, borderRadius: 99, padding: '2px 8px',
+                            background: log.status === 'sent' ? (isDark ? '#14532d33' : '#f0fdf4') : (isDark ? '#7f1d1d33' : '#fef2f2'),
+                            color: log.status === 'sent' ? '#16a34a' : '#ef4444',
+                            border: `1px solid ${log.status === 'sent' ? '#16a34a' : '#ef4444'}`,
+                          }}>
+                            {log.status === 'sent' ? '✓ Wysłany' : '✗ Błąd'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+              <Pagination
+                total={logs.length}
+                perPage={LOGS_PER_PAGE}
+                currentPage={logsPage}
+                onPageChange={setLogsPage}
+              />
+            </>
           )}
         </div>
       )}

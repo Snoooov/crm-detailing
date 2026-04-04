@@ -3,8 +3,14 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const pool = require('../config/db');
 
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 router.get('/', auth, async (req, res) => {
   const { q, date_from, date_to } = req.query;
+
+  if (date_from && !DATE_RE.test(date_from)) return res.status(400).json({ error: 'Nieprawidłowy format date_from' });
+  if (date_to && !DATE_RE.test(date_to)) return res.status(400).json({ error: 'Nieprawidłowy format date_to' });
+  if (q && q.trim().length > 200) return res.status(400).json({ error: 'Zapytanie zbyt długie' });
 
   if ((!q || q.trim().length < 2) && !date_from && !date_to) {
     return res.json({ clients: [], vehicles: [], orders: [] });

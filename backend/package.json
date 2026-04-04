@@ -20,6 +20,8 @@
     "express-validator": "^7.3.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
+    "node-cron": "^4.2.1",
+    "nodemailer": "^8.0.4",
     "pg": "^8.20.0",
     "puppeteer": "^24.40.0",
     "qrcode": "^1.5.4",

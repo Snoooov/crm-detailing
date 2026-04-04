@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext.jsx';
 import api from '../api/axios.js';
@@ -10,8 +10,26 @@ const LoginPage = () => {
   const [requires2FA, setRequires2FA] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [sessionExpired] = useState(() => {
+    const expired = localStorage.getItem('session_expired') === '1';
+    if (expired) localStorage.removeItem('session_expired');
+    return expired;
+  });
+  const [isDark, setIsDark] = useState(() => {
+    const dark = localStorage.getItem('theme') === 'dark';
+    document.body.classList.toggle('dark', dark);
+    return dark;
+  });
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const observer = new MutationObserver(() => {
+      setIsDark(document.body.classList.contains('dark'));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,13 +62,22 @@ const LoginPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      background: '#f5f5f5',
+      background: isDark ? '#0f172a' : '#f5f5f5',
     }}>
       <div className="card" style={{ width: '100%', maxWidth: 400 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Auto Detailing CRM</h1>
         <p style={{ color: '#6b7280', marginBottom: 24 }}>
           {requires2FA ? 'Wprowadź kod z aplikacji authenticator' : 'Zaloguj się do systemu'}
         </p>
+
+        {sessionExpired && (
+          <div style={{
+            background: '#fef2f2', border: '1px solid #ef4444', color: '#ef4444',
+            borderRadius: 6, padding: '10px 14px', marginBottom: 16, fontSize: 13, fontWeight: 600,
+          }}>
+            Sesja wygasła — zaloguj się ponownie
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           {!requires2FA ? (

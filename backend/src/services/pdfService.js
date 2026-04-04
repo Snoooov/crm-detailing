@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-const path = require('path');
 
 const generateReceptionCardPDF = async (order) => {
   const browser = await puppeteer.launch({

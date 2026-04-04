@@ -3,9 +3,12 @@ const router = express.Router();
 const { auth } = require('../middleware/auth');
 const pool = require('../config/db');
 
+const VALID_ENTITY_TYPES = ['client', 'vehicle', 'order'];
+
 router.get('/:entityType/:entityId', auth, async (req, res) => {
   try {
     const { entityType, entityId } = req.params;
+    if (!VALID_ENTITY_TYPES.includes(entityType)) return res.status(400).json({ error: 'Nieprawidłowy typ encji' });
     const result = await pool.query(
       `SELECT * FROM notes
        WHERE entity_type = $1 AND entity_id = $2
@@ -22,6 +25,7 @@ router.get('/:entityType/:entityId', auth, async (req, res) => {
 router.post('/:entityType/:entityId', auth, async (req, res) => {
   try {
     const { entityType, entityId } = req.params;
+    if (!VALID_ENTITY_TYPES.includes(entityType)) return res.status(400).json({ error: 'Nieprawidłowy typ encji' });
     const { content } = req.body;
     if (!content?.trim()) {
       return res.status(400).json({ error: 'Treść notatki jest wymagana' });

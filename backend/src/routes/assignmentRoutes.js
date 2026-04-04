@@ -23,7 +23,9 @@ router.get('/orders/:orderId', auth, async (req, res) => {
 router.post('/orders/:orderId', auth, async (req, res) => {
   try {
     const { user_id } = req.body;
-    if (!user_id) return res.status(400).json({ error: 'Brak user_id' });
+    if (!user_id || !Number.isInteger(Number(user_id)) || Number(user_id) <= 0) {
+      return res.status(400).json({ error: 'Nieprawidłowy user_id' });
+    }
 
     await pool.query(
       `INSERT INTO order_assignments (order_id, user_id)

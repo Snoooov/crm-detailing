@@ -1,15 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
+import { ORDER_STATUSES } from '../constants/orderStatuses.js';
+import useDarkMode from '../hooks/useDarkMode.js';
 
-const STATUS_LABELS = {
-  inspection: 'Oględziny',
-  planned: 'Zaplanowane',
-  in_progress: 'W trakcie',
-  done: 'Gotowe',
-  released: 'Wydane',
-  cancelled: 'Anulowane',
-};
+const STATUS_LABELS = Object.fromEntries(
+  Object.entries(ORDER_STATUSES).map(([k, v]) => [k, v.label])
+);
 
 const GlobalSearch = () => {
   const [query, setQuery] = useState('');
@@ -18,6 +15,7 @@ const GlobalSearch = () => {
   const [open, setOpen] = useState(false);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const isDark = useDarkMode();
   const wrapperRef = useRef(null);
   const navigate = useNavigate();
 
@@ -89,9 +87,10 @@ const GlobalSearch = () => {
           top: 'calc(100% + 8px)',
           left: 0,
           width: 320,
-          background: 'white',
+          background: isDark ? '#1e293b' : 'white',
+          border: isDark ? '1px solid #334155' : '1px solid #e5e7eb',
           borderRadius: 8,
-          boxShadow: '0 4px 24px rgba(0,0,0,0.15)',
+          boxShadow: '0 4px 24px rgba(0,0,0,0.25)',
           zIndex: 1000,
           overflow: 'hidden',
           maxHeight: 520,
@@ -101,8 +100,8 @@ const GlobalSearch = () => {
           {/* Filtry dat wewnątrz panelu */}
           <div style={{
             padding: '10px 12px',
-            borderBottom: '1px solid #e5e7eb',
-            background: '#f9fafb',
+            borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+            background: isDark ? '#263548' : '#f9fafb',
             display: 'flex',
             gap: 6,
           }}>
@@ -114,10 +113,10 @@ const GlobalSearch = () => {
                 flex: 1,
                 fontSize: 11,
                 padding: '5px 6px',
-                border: '1px solid #d1d5db',
+                border: `1px solid ${isDark ? '#334155' : '#d1d5db'}`,
                 borderRadius: 4,
-                background: 'white',
-                color: '#374151',
+                background: isDark ? '#1e293b' : 'white',
+                color: isDark ? '#e2e8f0' : '#374151',
               }}
             />
             <span style={{ color: '#9ca3af', fontSize: 12, alignSelf: 'center' }}>—</span>
@@ -129,10 +128,10 @@ const GlobalSearch = () => {
                 flex: 1,
                 fontSize: 11,
                 padding: '5px 6px',
-                border: '1px solid #d1d5db',
+                border: `1px solid ${isDark ? '#334155' : '#d1d5db'}`,
                 borderRadius: 4,
-                background: 'white',
-                color: '#374151',
+                background: isDark ? '#1e293b' : 'white',
+                color: isDark ? '#e2e8f0' : '#374151',
               }}
             />
             {(dateFrom || dateTo) && (
@@ -155,39 +154,39 @@ const GlobalSearch = () => {
           </div>
 
           {loading && (
-            <div style={{ padding: 16, color: '#6b7280', textAlign: 'center' }}>Szukam...</div>
+            <div style={{ padding: 16, color: isDark ? '#94a3b8' : '#6b7280', textAlign: 'center' }}>Szukam...</div>
           )}
 
           {!loading && query.trim().length < 2 && !dateFrom && !dateTo && (
-            <div style={{ padding: 16, color: '#9ca3af', textAlign: 'center', fontSize: 13 }}>
+            <div style={{ padding: 16, color: isDark ? '#64748b' : '#9ca3af', textAlign: 'center', fontSize: 13 }}>
               Wpisz szukaną frazę lub wybierz zakres dat
             </div>
           )}
 
           {!loading && results && !hasResults && (
-            <div style={{ padding: 16, color: '#6b7280', textAlign: 'center' }}>
+            <div style={{ padding: 16, color: isDark ? '#94a3b8' : '#6b7280', textAlign: 'center' }}>
               Brak wyników
             </div>
           )}
 
           {!loading && results?.clients.length > 0 && (
             <div>
-              <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', background: isDark ? '#263548' : '#f9fafb', borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}` }}>
                 Klienci
               </div>
               {results.clients.map(c => (
                 <div
                   key={c.id}
                   onClick={() => handleNavigate(`/clients/${c.id}`)}
-                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: `1px solid ${isDark ? '#334155' : '#f3f4f6'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isDark ? '#1e293b' : 'white' }}
+                  onMouseEnter={e => e.currentTarget.style.background = isDark ? '#263548' : '#f9fafb'}
+                  onMouseLeave={e => e.currentTarget.style.background = isDark ? '#1e293b' : 'white'}
                 >
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: 13 }}>{c.full_name}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>{c.phone || c.email || ''}</div>
+                    <div style={{ fontWeight: 500, fontSize: 13, color: isDark ? '#e2e8f0' : '#111' }}>{c.full_name}</div>
+                    <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#6b7280' }}>{c.phone || c.email || ''}</div>
                   </div>
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>klient</span>
+                  <span style={{ fontSize: 11, color: isDark ? '#64748b' : '#6b7280' }}>klient</span>
                 </div>
               ))}
             </div>
@@ -195,22 +194,22 @@ const GlobalSearch = () => {
 
           {!loading && results?.vehicles.length > 0 && (
             <div>
-              <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', background: isDark ? '#263548' : '#f9fafb', borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}` }}>
                 Pojazdy
               </div>
               {results.vehicles.map(v => (
                 <div
                   key={v.id}
                   onClick={() => handleNavigate(`/vehicles/${v.id}`)}
-                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: `1px solid ${isDark ? '#334155' : '#f3f4f6'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isDark ? '#1e293b' : 'white' }}
+                  onMouseEnter={e => e.currentTarget.style.background = isDark ? '#263548' : '#f9fafb'}
+                  onMouseLeave={e => e.currentTarget.style.background = isDark ? '#1e293b' : 'white'}
                 >
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: 13 }}>{v.brand} {v.model}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>{v.plate_number} · {v.client_name}</div>
+                    <div style={{ fontWeight: 500, fontSize: 13, color: isDark ? '#e2e8f0' : '#111' }}>{v.brand} {v.model}</div>
+                    <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#6b7280' }}>{v.plate_number} · {v.client_name}</div>
                   </div>
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>pojazd</span>
+                  <span style={{ fontSize: 11, color: isDark ? '#64748b' : '#6b7280' }}>pojazd</span>
                 </div>
               ))}
             </div>
@@ -218,25 +217,25 @@ const GlobalSearch = () => {
 
           {!loading && results?.orders.length > 0 && (
             <div>
-              <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+              <div style={{ padding: '8px 16px', fontSize: 11, fontWeight: 700, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', background: isDark ? '#263548' : '#f9fafb', borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}` }}>
                 Zlecenia
               </div>
               {results.orders.map(o => (
                 <div
                   key={o.id}
                   onClick={() => handleNavigate(`/orders/${o.id}`)}
-                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: '1px solid #f3f4f6', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                  onMouseEnter={e => e.currentTarget.style.background = '#f9fafb'}
-                  onMouseLeave={e => e.currentTarget.style.background = 'white'}
+                  style={{ padding: '10px 16px', cursor: 'pointer', borderBottom: `1px solid ${isDark ? '#334155' : '#f3f4f6'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: isDark ? '#1e293b' : 'white' }}
+                  onMouseEnter={e => e.currentTarget.style.background = isDark ? '#263548' : '#f9fafb'}
+                  onMouseLeave={e => e.currentTarget.style.background = isDark ? '#1e293b' : 'white'}
                 >
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: 13 }}>{o.service_name}</div>
-                    <div style={{ fontSize: 12, color: '#6b7280' }}>
+                    <div style={{ fontWeight: 500, fontSize: 13, color: isDark ? '#e2e8f0' : '#111' }}>{o.service_name}</div>
+                    <div style={{ fontSize: 12, color: isDark ? '#94a3b8' : '#6b7280' }}>
                       {o.client_name} · {o.vehicle_brand} {o.vehicle_model}
                       {o.date_from && <span style={{ marginLeft: 4 }}>· {new Date(o.date_from).toLocaleDateString('pl-PL')}</span>}
                     </div>
                   </div>
-                  <span style={{ fontSize: 11, color: '#6b7280' }}>{STATUS_LABELS[o.status]}</span>
+                  <span style={{ fontSize: 11, color: isDark ? '#64748b' : '#6b7280' }}>{STATUS_LABELS[o.status]}</span>
                 </div>
               ))}
             </div>

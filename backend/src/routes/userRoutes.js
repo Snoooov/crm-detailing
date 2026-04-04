@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
-const { auth, adminOnly } = require('../middleware/auth');
+const { auth, adminOnly, managerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/db');
 
 // Lista użytkowników
-router.get('/', auth, adminOnly, async (req, res) => {
+router.get('/', auth, managerOrAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       'SELECT id, email, name, role, totp_enabled, created_at FROM users ORDER BY created_at ASC'

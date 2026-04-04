@@ -13,9 +13,7 @@ router.get('/', auth, async (req, res) => {
     const userId = req.user.id;
     const role = req.user.role;
 
-    const assignmentFilter = role === 'admin'
-      ? ''
-      : `AND o.id IN (SELECT order_id FROM order_assignments WHERE user_id = ${userId})`;
+    const isAdmin = role === 'admin';
 
     const [todayOrders, overdueOrders, readyOrders, tomorrowOrders] = await Promise.all([
       pool.query(
@@ -27,9 +25,9 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_from = $1
            AND o.status NOT IN ('released', 'cancelled')
-           ${assignmentFilter}
+           AND ($2 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $3))
          ORDER BY o.created_at DESC`,
-        [today]
+        [today, isAdmin, userId]
       ),
       pool.query(
         `SELECT o.id, o.service_name, o.status, o.date_to,
@@ -40,9 +38,9 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_to < $1
            AND o.status NOT IN ('released', 'cancelled', 'done')
-           ${assignmentFilter}
+           AND ($2 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $3))
          ORDER BY o.date_to ASC`,
-        [today]
+        [today, isAdmin, userId]
       ),
       pool.query(
         `SELECT o.id, o.service_name, o.status, o.date_to,
@@ -52,9 +50,10 @@ router.get('/', auth, async (req, res) => {
          JOIN clients c ON o.client_id = c.id
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.status = 'done'
-           ${assignmentFilter}
+           AND ($1 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $2))
          ORDER BY o.date_to ASC
-         LIMIT 10`
+         LIMIT 10`,
+        [isAdmin, userId]
       ),
       pool.query(
         `SELECT o.id, o.service_name, o.status, o.date_from,
@@ -65,9 +64,9 @@ router.get('/', auth, async (req, res) => {
          JOIN vehicles v ON o.vehicle_id = v.id
          WHERE o.date_from = $1
            AND o.status NOT IN ('released', 'cancelled')
-           ${assignmentFilter}
+           AND ($2 OR o.id IN (SELECT order_id FROM order_assignments WHERE user_id = $3))
          ORDER BY o.created_at DESC`,
-        [tomorrow]
+        [tomorrow, isAdmin, userId]
       ),
     ]);
 

@@ -57,6 +57,12 @@ const deleteClient = async (req, res) => {
   try {
     const client = await clientModel.getClientById(req.params.id);
     if (!client) return res.status(404).json({ error: 'Klient nie znaleziony' });
+    const pool = require('../config/db');
+    const countResult = await pool.query('SELECT COUNT(*) FROM orders WHERE client_id = $1', [req.params.id]);
+    const orderCount = parseInt(countResult.rows[0].count);
+    if (orderCount > 0) {
+      return res.status(409).json({ error: `Nie można usunąć klienta — ma ${orderCount} ${orderCount === 1 ? 'zlecenie' : orderCount < 5 ? 'zlecenia' : 'zleceń'}. Usuń najpierw zlecenia.`, orderCount });
+    }
     await clientModel.deleteClient(req.params.id);
     res.json({ message: 'Klient usunięty' });
   } catch (err) {

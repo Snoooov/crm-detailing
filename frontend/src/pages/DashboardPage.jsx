@@ -2,15 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { useAuth } from '../context/AuthContext.jsx';
-
-const STATUSES = {
-  inspection: { label: 'Oględziny', color: '#6b7280' },
-  planned: { label: 'Zaplanowane', color: '#2563eb' },
-  in_progress: { label: 'W trakcie', color: '#d97706' },
-  done: { label: 'Gotowe', color: '#16a34a' },
-  released: { label: 'Wydane', color: '#7c3aed' },
-  cancelled: { label: 'Anulowane', color: '#ef4444' },
-};
+import { ORDER_STATUSES as STATUSES } from '../constants/orderStatuses.js';
 
 const formatPrice = (price) => {
   if (!price && price !== 0) return '—';
@@ -182,6 +174,54 @@ const DashboardPage = () => {
           )}
         </div>
       </div>
+
+      {/* Tygodniowy breakdown kasy — tylko admin */}
+      {isAdmin && data.weeklyDailyRevenue && (
+        <div className="card" style={{ marginBottom: 24 }}>
+          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Kasa — ten tydzień</h2>
+          {data.weeklyDailyRevenue.length === 0 ? (
+            <div style={{ color: '#6b7280', textAlign: 'center', padding: 24 }}>Brak danych w tym tygodniu</div>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Dzień</th>
+                  <th style={{ textAlign: 'right' }}>Zlecenia</th>
+                  <th style={{ textAlign: 'right' }}>Gotówka</th>
+                  <th style={{ textAlign: 'right' }}>Karta</th>
+                  <th style={{ textAlign: 'right' }}>Razem</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.weeklyDailyRevenue.map((d, i) => (
+                  <tr key={i}>
+                    <td>{new Date(d.day).toLocaleDateString('pl-PL', { weekday: 'long', day: '2-digit', month: '2-digit' })}</td>
+                    <td style={{ textAlign: 'right', color: '#6b7280' }}>{d.orders}</td>
+                    <td style={{ textAlign: 'right', color: '#16a34a' }}>{formatPrice(d.cash)}</td>
+                    <td style={{ textAlign: 'right', color: '#2563eb' }}>{formatPrice(d.card)}</td>
+                    <td style={{ textAlign: 'right', fontWeight: 600 }}>{formatPrice(d.revenue)}</td>
+                  </tr>
+                ))}
+                <tr style={{ borderTop: '2px solid #e5e7eb', fontWeight: 700 }}>
+                  <td>Razem</td>
+                  <td style={{ textAlign: 'right' }}>
+                    {data.weeklyDailyRevenue.reduce((s, d) => s + parseInt(d.orders), 0)}
+                  </td>
+                  <td style={{ textAlign: 'right', color: '#16a34a' }}>
+                    {formatPrice(data.weeklyDailyRevenue.reduce((s, d) => s + parseFloat(d.cash), 0))}
+                  </td>
+                  <td style={{ textAlign: 'right', color: '#2563eb' }}>
+                    {formatPrice(data.weeklyDailyRevenue.reduce((s, d) => s + parseFloat(d.card), 0))}
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    {formatPrice(data.weeklyDailyRevenue.reduce((s, d) => s + parseFloat(d.revenue), 0))}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
 
       {/* Nadchodzące zlecenia */}
       <div className="card">

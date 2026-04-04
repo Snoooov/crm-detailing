@@ -9,14 +9,6 @@ const {
   deleteClient,
 } = require('../controllers/clientController');
 
-router.get('/', auth, getClients);
-router.get('/:id', auth, getClient);
-router.post('/', auth, createClient);
-router.put('/:id', auth, updateClient);
-router.delete('/:id', auth, deleteClient);
-
-module.exports = router;
-
 router.get('/:id/stats', auth, async (req, res) => {
   const pool = require('../config/db');
   try {
@@ -73,3 +65,11 @@ router.get('/:id/stats', auth, async (req, res) => {
     res.status(500).json({ error: 'Błąd serwera' });
   }
 });
+
+router.get('/', auth, getClients);
+router.get('/:id', auth, getClient);
+router.post('/', auth, createClient);
+router.put('/:id', auth, updateClient);
+router.delete('/:id', auth, deleteClient);
+
+module.exports = router;

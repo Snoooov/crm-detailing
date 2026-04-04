@@ -16,7 +16,11 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      const hadToken = !!localStorage.getItem('token');
       localStorage.removeItem('token');
+      if (hadToken) {
+        localStorage.setItem('session_expired', '1');
+      }
       window.location.href = '/login';
     }
     return Promise.reject(error);

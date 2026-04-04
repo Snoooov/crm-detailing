@@ -1,9 +1,13 @@
-const PaymentSection = ({ form, onChange }) => {
+import { useState } from 'react';
+import useDarkMode from '../hooks/useDarkMode.js';
+
+const PaymentSection = ({ form, onChange, clientNip }) => {
   const price = parseFloat(form.price) || 0;
   const paidCash = parseFloat(form.paid_cash) || 0;
   const paidCard = parseFloat(form.paid_card) || 0;
   const totalPaid = paidCash + paidCard;
   const remaining = price - totalPaid;
+  const isDark = useDarkMode();
 
   const handlePaidChange = (e) => {
     const isPaid = e.target.checked;
@@ -20,11 +24,13 @@ const PaymentSection = ({ form, onChange }) => {
 
   return (
     <div style={{
-      border: '1px solid #e5e7eb',
+      border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
       borderRadius: 8,
       padding: 16,
       marginBottom: 16,
-      background: form.is_paid ? '#f0fdf4' : '#fafafa',
+      background: form.is_paid
+        ? (isDark ? '#14532d33' : '#f0fdf4')
+        : (isDark ? '#263548' : '#fafafa'),
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: form.is_paid ? 16 : 0 }}>
         <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', fontWeight: 600 }}>
@@ -47,6 +53,18 @@ const PaymentSection = ({ form, onChange }) => {
           </span>
         )}
       </div>
+
+      {clientNip && (
+        <div className="form-group" style={{ marginBottom: 12 }}>
+          <label>Nr faktury</label>
+          <input
+            type="text"
+            value={form.invoice_number || ''}
+            onChange={e => onChange('invoice_number', e.target.value)}
+            placeholder="np. FV/2024/001"
+          />
+        </div>
+      )}
 
       {form.is_paid && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>

@@ -1,7 +1,0 @@
-Admin:
-admin@crm.pl
-admin123
-
-Pracownik:
-pracownik@pracownik.pl
-Test!!

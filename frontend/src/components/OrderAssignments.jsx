@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
+import useDarkMode from '../hooks/useDarkMode.js';
 
 const ROLE_LABELS = {
-  admin: { label: 'Admin', color: '#7c3aed' },
+  admin:    { label: 'Admin',     color: '#7c3aed' },
+  manager:  { label: 'Menedżer', color: '#0891b2' },
   employee: { label: 'Pracownik', color: '#2563eb' },
 };
 
@@ -12,6 +14,7 @@ const OrderAssignments = ({ orderId }) => {
   const [loading, setLoading] = useState(true);
   const [adding, setAdding] = useState(false);
   const [selectedUser, setSelectedUser] = useState('');
+  const isDark = useDarkMode();
 
   useEffect(() => {
     Promise.all([
@@ -20,20 +23,19 @@ const OrderAssignments = ({ orderId }) => {
     ]).then(([assignedRes, usersRes]) => {
       setAssigned(assignedRes.data);
       setUsers(usersRes.data);
+    }).catch(err => {
+      console.error('Błąd ładowania przypisań:', err);
+    }).finally(() => {
       setLoading(false);
     });
   }, [orderId]);
 
-  const availableUsers = users.filter(
-    u => !assigned.find(a => a.id === u.id)
-  );
+  const availableUsers = users.filter(u => !assigned.find(a => a.id === u.id));
 
   const handleAdd = async () => {
     if (!selectedUser) return;
     try {
-      const res = await api.post(`/assignments/orders/${orderId}`, {
-        user_id: parseInt(selectedUser),
-      });
+      const res = await api.post(`/assignments/orders/${orderId}`, { user_id: parseInt(selectedUser) });
       setAssigned(res.data);
       setSelectedUser('');
       setAdding(false);
@@ -55,23 +57,18 @@ const OrderAssignments = ({ orderId }) => {
 
   return (
     <div style={{
-      border: '1px solid #e5e7eb',
+      border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
       borderRadius: 8,
       padding: 16,
       marginBottom: 16,
     }}>
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-      }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
         <div style={{ fontWeight: 600, fontSize: 14 }}>
           Przypisani pracownicy
           {assigned.length > 0 && (
             <span style={{
-              background: '#f3f4f6',
-              color: '#6b7280',
+              background: isDark ? '#334155' : '#f3f4f6',
+              color: isDark ? '#94a3b8' : '#6b7280',
               borderRadius: 99,
               padding: '1px 8px',
               fontSize: 12,
@@ -83,19 +80,14 @@ const OrderAssignments = ({ orderId }) => {
           )}
         </div>
         {!adding && availableUsers.length > 0 && (
-          <button
-            className="btn-secondary"
-            style={{ fontSize: 12, padding: '4px 10px' }}
-            onClick={() => setAdding(true)}
-          >
+          <button className="btn-secondary" style={{ fontSize: 12, padding: '4px 10px' }} onClick={() => setAdding(true)}>
             + Przypisz
           </button>
         )}
       </div>
 
-      {/* Lista przypisanych */}
       {assigned.length === 0 && !adding ? (
-        <div style={{ color: '#9ca3af', fontSize: 13 }}>
+        <div style={{ color: isDark ? '#475569' : '#9ca3af', fontSize: 13 }}>
           Brak przypisanych pracowników
         </div>
       ) : (
@@ -105,30 +97,23 @@ const OrderAssignments = ({ orderId }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: '#f9fafb',
-              border: '1px solid #e5e7eb',
+              background: isDark ? '#1e293b' : '#f9fafb',
+              border: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
               borderRadius: 6,
               padding: '8px 12px',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 99,
-                  background: '#2563eb',
-                  color: 'white',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 700,
-                  fontSize: 13,
-                  flexShrink: 0,
+                  width: 32, height: 32, borderRadius: 99,
+                  background: '#2563eb', color: 'white',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontWeight: 700, fontSize: 13, flexShrink: 0,
                 }}>
                   {user.name.charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <div style={{ fontWeight: 500, fontSize: 13 }}>{user.name}</div>
-                  <div style={{ fontSize: 11, color: '#6b7280' }}>{user.email}</div>
+                  <div style={{ fontSize: 11, color: isDark ? '#64748b' : '#6b7280' }}>{user.email}</div>
                 </div>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -145,13 +130,9 @@ const OrderAssignments = ({ orderId }) => {
                 <button
                   onClick={() => handleRemove(user.id)}
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#9ca3af',
-                    cursor: 'pointer',
-                    fontSize: 18,
-                    lineHeight: 1,
-                    padding: '0 4px',
+                    background: 'none', border: 'none',
+                    color: isDark ? '#475569' : '#9ca3af',
+                    cursor: 'pointer', fontSize: 18, lineHeight: 1, padding: '0 4px',
                   }}
                   title="Usuń przypisanie"
                 >
@@ -163,33 +144,20 @@ const OrderAssignments = ({ orderId }) => {
         </div>
       )}
 
-      {/* Formularz dodawania */}
       {adding && (
         <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-          <select
-            value={selectedUser}
-            onChange={e => setSelectedUser(e.target.value)}
-            style={{ flex: 1 }}
-          >
+          <select value={selectedUser} onChange={e => setSelectedUser(e.target.value)} style={{ flex: 1 }}>
             <option value="">Wybierz pracownika...</option>
             {availableUsers.map(u => (
               <option key={u.id} value={u.id}>
-                {u.name} ({u.role === 'admin' ? 'Admin' : 'Pracownik'})
+                {u.name} ({ROLE_LABELS[u.role]?.label || u.role})
               </option>
             ))}
           </select>
-          <button
-            className="btn-primary"
-            onClick={handleAdd}
-            disabled={!selectedUser}
-            style={{ whiteSpace: 'nowrap' }}
-          >
+          <button className="btn-primary" onClick={handleAdd} disabled={!selectedUser} style={{ whiteSpace: 'nowrap' }}>
             Przypisz
           </button>
-          <button
-            className="btn-secondary"
-            onClick={() => { setAdding(false); setSelectedUser(''); }}
-          >
+          <button className="btn-secondary" onClick={() => { setAdding(false); setSelectedUser(''); }}>
             Anuluj
           </button>
         </div>

@@ -15,6 +15,8 @@ import OrderReceptionCard from './pages/orders/OrderReceptionCard.jsx';
 import SettingsPage from './pages/SettingsPage.jsx';
 import UsersPage from './pages/UsersPage.jsx';
 import EmailsPage from './pages/EmailsPage.jsx';
+import ServiceCatalogPage from './pages/ServiceCatalogPage.jsx';
+import ReportsPage from './pages/ReportsPage.jsx';
 
 const DefaultRedirect = () => <Navigate to="/dashboard" />;
 
@@ -48,6 +50,8 @@ function App() {
             <Route path="vehicles/:id" element={<VehicleDetailPage />} />
             <Route path="orders/:id/reception" element={<OrderReceptionCard />} />
             <Route path="emails" element={<EmailsPage />} />
+            <Route path="services" element={<ServiceCatalogPage />} />
+            <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="users" element={<UsersPage />} />
           </Route>

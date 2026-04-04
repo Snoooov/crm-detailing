@@ -24,4 +24,11 @@ const adminOnly = (req, res, next) => {
   next();
 };
 
-module.exports = { auth, middleware: auth, adminOnly };
+const managerOrAdmin = (req, res, next) => {
+  if (!['admin', 'manager'].includes(req.user?.role)) {
+    return res.status(403).json({ error: 'Brak uprawnień' });
+  }
+  next();
+};
+
+module.exports = { auth, middleware: auth, adminOnly, managerOrAdmin };

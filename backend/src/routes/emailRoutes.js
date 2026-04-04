@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const { auth, adminOnly } = require('../middleware/auth');
+const { auth, adminOnly, managerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/db');
 const { runEmailJobs, } = require('../services/emailScheduler');
 const { sendOrderEmail } = require('../services/emailService');
 
 // Lista szablonów
-router.get('/templates', auth, adminOnly, async (req, res) => {
+router.get('/templates', auth, managerOrAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM email_templates ORDER BY id');
     res.json(result.rows);
@@ -33,7 +33,7 @@ router.put('/templates/:id', auth, adminOnly, async (req, res) => {
 });
 
 // Historia wysłanych maili
-router.get('/logs', auth, adminOnly, async (req, res) => {
+router.get('/logs', auth, managerOrAdmin, async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT el.*, c.full_name as client_name
@@ -48,10 +48,13 @@ router.get('/logs', auth, adminOnly, async (req, res) => {
   }
 });
 
+const VALID_EMAIL_TYPES = ['confirmation', 'ready', 'reminder_24h', 'followup_short', 'followup_long'];
+
 // Wyślij mail ręcznie do zlecenia
 router.post('/send/:orderId/:type', auth, adminOnly, async (req, res) => {
   try {
     const { orderId, type } = req.params;
+    if (!VALID_EMAIL_TYPES.includes(type)) return res.status(400).json({ error: 'Nieprawidłowy typ maila' });
     const orderResult = await pool.query(
       `SELECT o.*, c.full_name as client_name, c.email as client_email,
               v.brand as vehicle_brand, v.model as vehicle_model, v.plate_number
@@ -79,6 +82,80 @@ router.post('/run-jobs', auth, adminOnly, async (req, res) => {
     res.json({ message: 'Zadania emailowe wykonane' });
   } catch (err) {
     res.status(500).json({ error: 'Błąd serwera' });
+  }
+});
+
+router.post('/test', auth, adminOnly, async (req, res) => {
+  try {
+    const { type } = req.body;
+
+    const userResult = await pool.query(
+      'SELECT * FROM users WHERE id = $1',
+      [req.user.id]
+    );
+    const user = userResult.rows[0];
+
+    if (!user?.email) {
+      return res.status(400).json({ error: 'Brak emaila na koncie użytkownika' });
+    }
+
+    const nodemailer = require('nodemailer');
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    if (type) {
+      // Testowy mail konkretnego szablonu
+      const templateResult = await pool.query(
+        'SELECT * FROM email_templates WHERE type = $1',
+        [type]
+      );
+      const template = templateResult.rows[0];
+      if (!template) return res.status(404).json({ error: 'Szablon nie znaleziony' });
+
+      const testVars = {
+        client_name: 'Jan',
+        vehicle_brand: 'BMW',
+        vehicle_model: 'E46',
+        plate_number: 'KR12345',
+        service_name: 'Detailing kompleksowy',
+        date_from: new Date().toLocaleDateString('pl-PL'),
+        date_to: new Date().toLocaleDateString('pl-PL'),
+      };
+
+      let subject = template.subject;
+      let body = template.body;
+      Object.entries(testVars).forEach(([key, value]) => {
+        subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        body = body.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      });
+
+      await transporter.sendMail({
+        from: process.env.EMAIL_FROM,
+        to: user.email,
+        subject: `[TEST] ${subject}`,
+        html: body,
+      });
+
+      return res.json({ message: `Mail testowy "${template.name}" wysłany na ${user.email}` });
+    }
+
+    // Ogólny mail testowy
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM,
+      to: user.email,
+      subject: 'Test systemu mailowego — Auto Detailing CRM',
+      html: `Cześć ${user.name},\n\nTo jest testowa wiadomość z systemu CRM.\n\nJeśli widzisz tego maila — konfiguracja działa poprawnie!\n\nZespół Auto Detailing`,
+    });
+
+    res.json({ message: `Mail testowy wysłany na ${user.email}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Błąd wysyłania maila testowego' });
   }
 });
 

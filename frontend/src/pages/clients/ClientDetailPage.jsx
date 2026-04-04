@@ -3,16 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
 import ClientStats from '../../components/ClientStats.jsx';
+import CollapsibleOrders from '../../components/CollapsibleOrders.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-
-const STATUSES = {
-  inspection: 'Oględziny / Wycena',
-  planned: 'Zaplanowane',
-  in_progress: 'W trakcie',
-  done: 'Gotowe',
-  released: 'Wydane',
-  cancelled: 'Anulowane',
-};
 
 const STATUS_LABELS = {
   vip: { label: 'VIP', color: '#7c3aed' },
@@ -30,6 +22,7 @@ const ClientDetailPage = () => {
   const [error, setError] = useState('');
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
+  const isPrivileged = ['admin', 'manager'].includes(currentUser?.role);
 
   useEffect(() => {
     api.get(`/clients/${id}`).then(res => {
@@ -55,9 +48,22 @@ const ClientDetailPage = () => {
   };
 
   const handleDelete = async () => {
-    if (!window.confirm('Czy na pewno chcesz usunąć tego klienta? Usunięte zostaną też jego pojazdy.')) return;
-    await api.delete(`/clients/${id}`);
-    navigate('/clients');
+    const orderCount = client.orders?.length || 0;
+    const confirmMsg = orderCount > 0
+      ? `Ten klient ma ${orderCount} ${orderCount === 1 ? 'zlecenie' : orderCount < 5 ? 'zlecenia' : 'zleceń'}. Nie można go usunąć — najpierw usuń wszystkie zlecenia.`
+      : 'Czy na pewno chcesz usunąć tego klienta? Usunięte zostaną też jego pojazdy.';
+    if (orderCount > 0) {
+      alert(confirmMsg);
+      return;
+    }
+    if (!window.confirm(confirmMsg)) return;
+    try {
+      await api.delete(`/clients/${id}`);
+      navigate('/clients');
+    } catch (err) {
+      const msg = err.response?.data?.error || 'Błąd podczas usuwania';
+      alert(msg);
+    }
   };
 
   const formatDate = (dateStr) => {
@@ -148,7 +154,7 @@ const ClientDetailPage = () => {
           )}
         </div>
 
-        {isAdmin && (
+        {isPrivileged && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
           <div className="card">
             <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
@@ -170,34 +176,14 @@ const ClientDetailPage = () => {
             )}
           </div>
 
-          <div className="card">
-            <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
-              Historia zleceń ({client.orders?.length || 0})
-            </h2>
-            {client.orders?.length === 0 ? (
-              <div style={{ color: '#6b7280' }}>Brak zleceń</div>
-            ) : (
-              client.orders?.map(o => (
-                <div
-                  key={o.id}
-                  style={{ padding: '12px 0', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }}
-                  onClick={() => navigate(`/orders/${o.id}`)}
-                >
-                  <div style={{ fontWeight: 500 }}>{o.service_name}</div>
-                  <div style={{ color: '#6b7280', fontSize: 13 }}>
-                    {o.vehicle_brand} {o.vehicle_model} · {formatDate(o.date_from)} · {formatPrice(o.price)}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                    {STATUSES[o.status]}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+          <CollapsibleOrders
+            orders={client.orders || []}
+            title="Historia zleceń"
+          />
         </div>
       )}
       </div>
-      {isAdmin && <ClientStats clientId={id} />}
+      {isPrivileged && <ClientStats clientId={id} />}
       <NotesSection entityType="client" entityId={id} />
     </div>
   );

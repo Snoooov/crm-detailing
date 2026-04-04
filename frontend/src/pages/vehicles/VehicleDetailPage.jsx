@@ -2,16 +2,9 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
+import CollapsibleOrders from '../../components/CollapsibleOrders.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
-
-const STATUSES = {
-  inspection: 'Oględziny / Wycena',
-  planned: 'Zaplanowane',
-  in_progress: 'W trakcie',
-  done: 'Gotowe',
-  released: 'Wydane',
-  cancelled: 'Anulowane',
-};
+import useDarkMode from '../../hooks/useDarkMode.js';
 
 const VehicleDetailPage = () => {
   const { id } = useParams();
@@ -24,6 +17,8 @@ const VehicleDetailPage = () => {
   const [error, setError] = useState('');
   const { user: currentUser } = useAuth();
   const isAdmin = currentUser?.role === 'admin';
+  const isPrivileged = ['admin', 'manager'].includes(currentUser?.role);
+  const isDark = useDarkMode();
 
   useEffect(() => {
     api.get(`/vehicles/${id}`).then(res => {
@@ -78,8 +73,9 @@ const VehicleDetailPage = () => {
         <h1 style={{ fontSize: 24, fontWeight: 700 }}>{vehicle.brand} {vehicle.model}</h1>
         {vehicle.plate_number && (
           <span style={{
-            background: '#f3f4f6',
-            border: '1px solid #d1d5db',
+            background: isDark ? '#334155' : '#f3f4f6',
+            border: `1px solid ${isDark ? '#475569' : '#d1d5db'}`,
+            color: isDark ? '#e2e8f0' : '#111827',
             borderRadius: 6,
             padding: '4px 10px',
             fontSize: 13,
@@ -154,32 +150,12 @@ const VehicleDetailPage = () => {
           )}
         </div>
 
-        {isAdmin && (
-        <div className="card">
-          <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>
-            Historia usług ({orders.length})
-          </h2>
-          {orders.length === 0 ? (
-            <div style={{ color: '#6b7280' }}>Brak historii usług</div>
-          ) : (
-            orders.map(o => (
-              <div
-                key={o.id}
-                style={{ padding: '12px 0', borderBottom: '1px solid #e5e7eb', cursor: 'pointer' }}
-                onClick={() => navigate(`/orders/${o.id}`)}
-              >
-                <div style={{ fontWeight: 500 }}>{o.service_name}</div>
-                <div style={{ color: '#6b7280', fontSize: 13 }}>
-                  {formatDate(o.date_from)} · {formatPrice(o.price)}
-                </div>
-                <div style={{ fontSize: 12, color: '#6b7280', marginTop: 2 }}>
-                  {STATUSES[o.status]}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
+        {isPrivileged && (
+          <CollapsibleOrders
+            orders={orders}
+            title="Historia usług"
+          />
+        )}
       </div>
       <NotesSection entityType="vehicle" entityId={id} />
     </div>

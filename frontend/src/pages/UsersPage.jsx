@@ -3,8 +3,9 @@ import api from '../api/axios.js';
 import { useAuth } from '../context/AuthContext.jsx';
 
 const ROLE_LABELS = {
-  admin: { label: 'Administrator', color: '#7c3aed' },
-  employee: { label: 'Pracownik', color: '#2563eb' },
+  admin:    { label: 'Administrator', color: '#7c3aed' },
+  manager:  { label: 'Menedżer',      color: '#0891b2' },
+  employee: { label: 'Pracownik',     color: '#2563eb' },
 };
 
 const UsersPage = () => {
@@ -117,6 +118,7 @@ const UsersPage = () => {
               <label>Rola</label>
               <select name="role" value={form.role} onChange={handleChange}>
                 <option value="employee">Pracownik</option>
+                <option value="manager">Menedżer</option>
                 <option value="admin">Administrator</option>
               </select>
             </div>

@@ -19,7 +19,14 @@ const getOrderWithDetails = async (orderId) => {
   return result.rows[0];
 };
 
+let isRunning = false;
+
 const runEmailJobs = async () => {
+  if (isRunning) {
+    console.log('[Email Scheduler] Poprzednie zadanie jeszcze trwa, pomijam.');
+    return;
+  }
+  isRunning = true;
   console.log('[Email Scheduler] Sprawdzam maile do wysłania...');
 
   const now = new Date();
@@ -118,12 +125,16 @@ const runEmailJobs = async () => {
     console.log('[Email Scheduler] Gotowe.');
   } catch (err) {
     console.error('[Email Scheduler] Błąd:', err);
+  } finally {
+    isRunning = false;
   }
 };
 
 const startScheduler = () => {
-  // Uruchom co godzinę
+  // Co godzinę
   cron.schedule('0 * * * *', runEmailJobs);
+  // Uruchom też od razu przy starcie serwera
+  setTimeout(runEmailJobs, 5000);
   console.log('[Email Scheduler] Uruchomiony — sprawdza co godzinę');
 };
 

@@ -11,6 +11,14 @@ const Pagination = ({ total, perPage, currentPage, onPageChange }) => {
     return [1, '...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages];
   };
 
+  const btnBase = {
+    padding: '6px 10px',
+    borderRadius: 6,
+    cursor: 'pointer',
+    fontSize: 13,
+    minWidth: 32,
+  };
+
   return (
     <div style={{
       display: 'flex',
@@ -27,14 +35,11 @@ const Pagination = ({ total, perPage, currentPage, onPageChange }) => {
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="pagination-btn"
           style={{
-            padding: '6px 10px',
-            border: '1px solid #e5e7eb',
-            borderRadius: 6,
-            background: 'white',
+            ...btnBase,
+            opacity: currentPage === 1 ? 0.4 : 1,
             cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-            color: currentPage === 1 ? '#d1d5db' : '#374151',
-            fontSize: 13,
           }}
         >
           ←
@@ -42,27 +47,18 @@ const Pagination = ({ total, perPage, currentPage, onPageChange }) => {
 
         {getVisiblePages().map((page, i) => (
           page === '...' ? (
-            <span key={`dots-${i}`} style={{
-              padding: '6px 10px',
-              color: '#6b7280',
-              fontSize: 13,
-            }}>
-              ...
-            </span>
+            <span key={`dots-${i}`} style={{ padding: '6px 4px', color: '#6b7280', fontSize: 13 }}>...</span>
           ) : (
             <button
               key={page}
               onClick={() => onPageChange(page)}
+              className={`pagination-btn${currentPage === page ? ' active' : ''}`}
               style={{
-                padding: '6px 10px',
-                border: '1px solid #e5e7eb',
-                borderRadius: 6,
-                background: currentPage === page ? '#2563eb' : 'white',
-                color: currentPage === page ? 'white' : '#374151',
-                cursor: 'pointer',
-                fontSize: 13,
+                ...btnBase,
+                background: currentPage === page ? '#2563eb' : undefined,
+                color: currentPage === page ? 'white' : undefined,
+                borderColor: currentPage === page ? '#2563eb' : undefined,
                 fontWeight: currentPage === page ? 600 : 400,
-                minWidth: 32,
               }}
             >
               {page}
@@ -73,14 +69,11 @@ const Pagination = ({ total, perPage, currentPage, onPageChange }) => {
         <button
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="pagination-btn"
           style={{
-            padding: '6px 10px',
-            border: '1px solid #e5e7eb',
-            borderRadius: 6,
-            background: 'white',
+            ...btnBase,
+            opacity: currentPage === totalPages ? 0.4 : 1,
             cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-            color: currentPage === totalPages ? '#d1d5db' : '#374151',
-            fontSize: 13,
           }}
         >
           →
