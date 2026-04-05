@@ -1,11 +1,12 @@
 const nodemailer = require('nodemailer');
 const pool = require('../config/db');
+const config = require('../config/appConfig');
 
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  service: config.email.service,
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
+    user: config.email.user,
+    pass: config.email.pass,
   },
 });
 
@@ -43,7 +44,7 @@ const logEmail = async ({ orderId, clientId, type, email, subject, status, error
 
 const sendEmail = async ({ to, subject, html }) => {
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM,
+    from: config.email.from,
     to,
     subject,
     html,
@@ -101,4 +102,4 @@ const sendOrderEmail = async (order, type) => {
   }
 };
 
-module.exports = { sendOrderEmail, getTemplate, wasEmailSent };
+module.exports = { sendOrderEmail, getTemplate, wasEmailSent, sendEmail, logEmail, renderTemplate };

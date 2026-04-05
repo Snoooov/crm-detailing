@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const config = require('../config/appConfig');
 
 const generateReceptionCardPDF = async (order) => {
   const browser = await puppeteer.launch({
@@ -110,7 +111,7 @@ const generateReceptionCardPDF = async (order) => {
 
   <div class="header">
     <div>
-      <div class="company-name">Auto Detailing</div>
+      <div class="company-name">${config.company.name}</div>
       <div class="company-sub">Karta przyjęcia pojazdu</div>
     </div>
     <div class="order-info">

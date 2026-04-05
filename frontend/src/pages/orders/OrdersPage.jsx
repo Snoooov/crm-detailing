@@ -4,6 +4,7 @@ import api from '../../api/axios.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { ORDER_STATUSES as STATUSES } from '../../constants/orderStatuses.js';
 import useDarkMode from '../../hooks/useDarkMode.js';
+import config from '../../config.js';
 
 const SortIcon = ({ field, sortField, sortDir }) => {
   if (sortField !== field) return <span style={{ color: '#d1d5db', marginLeft: 4 }}>↕</span>;
@@ -459,7 +460,7 @@ const OrdersPage = () => {
     if (filters.date_from) params.set('date_from', filters.date_from);
     if (filters.date_to) params.set('date_to', filters.date_to);
     if (filters.status) params.set('status', filters.status);
-    const url = `http://localhost:5000/api/orders/export/csv?${params.toString()}`;
+    const url = `${config.apiUrl}/orders/export/csv?${params.toString()}`;
     const a = document.createElement('a');
     a.href = url;
     a.setAttribute('download', '');

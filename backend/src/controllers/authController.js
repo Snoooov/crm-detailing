@@ -2,6 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const speakeasy = require('speakeasy');
 const pool = require('../config/db');
+const config = require('../config/appConfig');
 
 const login = async (req, res) => {
   const { email, password, totp_token } = req.body;
@@ -43,7 +44,7 @@ const login = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, name: user.name, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '8h' }
+      { expiresIn: config.auth.jwtExpiry }
     );
 
     res.json({

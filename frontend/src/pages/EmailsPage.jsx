@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
 import Pagination from '../components/Pagination.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
+import { useAuth } from '../context/AuthContext.jsx';
 
 const TYPE_NAMES = {
   confirmation: 'Potwierdzenie rezerwacji',
@@ -9,11 +10,212 @@ const TYPE_NAMES = {
   ready: 'Auto gotowe do odbioru',
   followup_short: 'Follow-up (4 dni po)',
   followup_long: 'Follow-up (30 dni po)',
+  campaign: 'Kampania',
+};
+
+const CLIENT_STATUS_LABELS = { vip: 'VIP', regular: 'Stały', normal: 'Normalny' };
+
+const CampaignTab = ({ isDark }) => {
+  const [filters, setFilters] = useState({ days_inactive: '', status: '', min_orders: '' });
+  const [preview, setPreview] = useState(null);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState('');
+
+  const border = isDark ? '#334155' : '#e5e7eb';
+  const bg = isDark ? '#0f172a' : '#f9fafb';
+
+  const handlePreview = async () => {
+    setLoadingPreview(true);
+    setError('');
+    try {
+      const params = {};
+      if (filters.days_inactive) params.days_inactive = filters.days_inactive;
+      if (filters.status) params.status = filters.status;
+      if (filters.min_orders) params.min_orders = filters.min_orders;
+      const res = await api.get('/campaigns/preview', { params });
+      setPreview(res.data);
+      setSelectedIds(res.data.filter(c => c.email).map(c => c.id));
+    } catch (err) {
+      setError('Błąd ładowania klientów');
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  const toggleClient = (id) => {
+    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const toggleAll = () => {
+    if (!preview) return;
+    const allIds = preview.map(c => c.id);
+    setSelectedIds(selectedIds.length === allIds.length ? [] : allIds);
+  };
+
+  const handleSend = async () => {
+    if (!subject.trim() || !body.trim()) return setError('Temat i treść są wymagane');
+    if (!selectedIds.length) return setError('Wybierz co najmniej jednego klienta');
+    if (!window.confirm(`Wyślij kampanię do ${selectedIds.length} klientów?`)) return;
+    setSending(true);
+    setError('');
+    try {
+      const res = await api.post('/campaigns/send', { subject, body, client_ids: selectedIds });
+      setResult(res.data);
+      setPreview(null);
+      setSelectedIds([]);
+    } catch (err) {
+      setError(err.response?.data?.error || 'Błąd wysyłania');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('pl-PL') : 'brak';
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Filters */}
+      <div className="card">
+        <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 16 }}>Segmentacja klientów</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 }}>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Ostatnia wizyta ponad X dni temu</label>
+            <input
+              type="number" min="1" placeholder="np. 30"
+              value={filters.days_inactive}
+              onChange={e => setFilters(p => ({ ...p, days_inactive: e.target.value }))}
+            />
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Status klienta</label>
+            <select value={filters.status} onChange={e => setFilters(p => ({ ...p, status: e.target.value }))}>
+              <option value="">Wszystkie</option>
+              <option value="vip">VIP</option>
+              <option value="regular">Stały</option>
+              <option value="normal">Normalny</option>
+            </select>
+          </div>
+          <div className="form-group" style={{ marginBottom: 0 }}>
+            <label>Min. liczba wizyt</label>
+            <input
+              type="number" min="1" placeholder="np. 3"
+              value={filters.min_orders}
+              onChange={e => setFilters(p => ({ ...p, min_orders: e.target.value }))}
+            />
+          </div>
+        </div>
+        <button className="btn-primary" onClick={handlePreview} disabled={loadingPreview}>
+          {loadingPreview ? 'Szukam...' : 'Znajdź klientów'}
+        </button>
+      </div>
+
+      {error && (
+        <div style={{ background: isDark ? '#7f1d1d22' : '#fef2f2', border: '1px solid #fca5a5', color: '#ef4444', borderRadius: 6, padding: '10px 14px', fontSize: 13 }}>
+          {error}
+        </div>
+      )}
+
+      {result && (
+        <div style={{ background: isDark ? '#14532d22' : '#f0fdf4', border: '1px solid #86efac', color: '#16a34a', borderRadius: 6, padding: '14px 16px' }}>
+          <div style={{ fontWeight: 700, marginBottom: 4 }}>Kampania wysłana</div>
+          <div style={{ fontSize: 13 }}>Wysłano: {result.sent} · Błędy: {result.failed}</div>
+        </div>
+      )}
+
+      {/* Client list */}
+      {preview !== null && (
+        <div className="card">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+            <div style={{ fontWeight: 600, fontSize: 14 }}>
+              Klienci ({preview.length})
+              {selectedIds.length > 0 && (
+                <span style={{ color: '#2563eb', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>
+                  {selectedIds.length} zaznaczonych
+                </span>
+              )}
+            </div>
+            {preview.length > 0 && (
+              <button className="btn-secondary" style={{ fontSize: 12, padding: '3px 10px' }} onClick={toggleAll}>
+                {selectedIds.length === preview.length ? 'Odznacz wszystkich' : 'Zaznacz wszystkich'}
+              </button>
+            )}
+          </div>
+
+          {preview.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px 0', color: '#6b7280', fontSize: 13 }}>Brak klientów spełniających kryteria</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 300, overflowY: 'auto' }}>
+              {preview.map(c => (
+                <label key={c.id} style={{
+                  display: 'flex', alignItems: 'center', gap: 10,
+                  background: selectedIds.includes(c.id) ? (isDark ? '#1e3a5f' : '#eff6ff') : bg,
+                  border: `1px solid ${selectedIds.includes(c.id) ? '#2563eb' : border}`,
+                  borderRadius: 6, padding: '8px 12px', cursor: 'pointer', fontSize: 13,
+                }}>
+                  <input type="checkbox" checked={selectedIds.includes(c.id)} onChange={() => toggleClient(c.id)} />
+                  <div style={{ flex: 1 }}>
+                    <span style={{ fontWeight: 500 }}>{c.full_name}</span>
+                    {c.status !== 'normal' && (
+                      <span style={{ marginLeft: 6, fontSize: 11, color: c.status === 'vip' ? '#7c3aed' : '#0891b2', fontWeight: 600 }}>
+                        {CLIENT_STATUS_LABELS[c.status]}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: 12, color: '#6b7280' }}>
+                    <div>{c.email}</div>
+                    <div>Wizyty: {c.total_orders} · Ostatnia: {fmtDate(c.last_visit)}</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Email composition */}
+      {preview !== null && preview.length > 0 && (
+        <div className="card">
+          <h2 style={{ fontSize: 15, fontWeight: 600, marginBottom: 4 }}>Treść kampanii</h2>
+          <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>
+            Dostępne zmienne: <code>{'{{client_name}}'}</code>
+          </div>
+          <div className="form-group">
+            <label>Temat maila</label>
+            <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="np. Czas na kolejny detailing!" />
+          </div>
+          <div className="form-group">
+            <label>Treść (HTML)</label>
+            <textarea
+              value={body}
+              onChange={e => setBody(e.target.value)}
+              rows={8}
+              style={{ fontFamily: 'monospace', fontSize: 13 }}
+              placeholder="<p>Dzień dobry {{client_name}},</p><p>Zapraszamy ponownie!</p>"
+            />
+          </div>
+          <button
+            className="btn-primary"
+            onClick={handleSend}
+            disabled={sending || !selectedIds.length || !subject.trim() || !body.trim()}
+          >
+            {sending ? 'Wysyłanie...' : `Wyślij do ${selectedIds.length} klientów`}
+          </button>
+        </div>
+      )}
+    </div>
+  );
 };
 
 const VARIABLES_HELP = '{{client_name}}, {{vehicle_brand}}, {{vehicle_model}}, {{plate_number}}, {{service_name}}, {{date_from}}, {{date_to}}';
 
 const EmailsPage = () => {
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
   const [templates, setTemplates] = useState([]);
   const [logs, setLogs] = useState([]);
   const [activeTab, setActiveTab] = useState('templates');
@@ -107,23 +309,17 @@ const EmailsPage = () => {
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700 }}>Maile automatyczne</h1>
-        <div style={{ display: 'flex', gap: 8 }}>
-            <button
-            className="btn-secondary"
-            onClick={handleTestEmail}
-            disabled={testLoading}
-            >
-            {testLoading ? 'Wysyłanie...' : '✉️ Wyślij testowy mail'}
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn-secondary" onClick={handleTestEmail} disabled={testLoading}>
+              {testLoading ? 'Wysyłanie...' : '✉️ Wyślij testowy mail'}
             </button>
-            <button
-            className="btn-secondary"
-            onClick={handleRunJobs}
-            disabled={runningJobs}
-            >
-            {runningJobs ? 'Uruchamianie...' : '▶ Uruchom teraz'}
+            <button className="btn-secondary" onClick={handleRunJobs} disabled={runningJobs}>
+              {runningJobs ? 'Uruchamianie...' : '▶ Uruchom teraz'}
             </button>
-        </div>
-        </div>
+          </div>
+        )}
+      </div>
 
       {message && (
         <div style={{
@@ -138,6 +334,7 @@ const EmailsPage = () => {
       {/* Taby */}
       <div style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: 24, display: 'flex', gap: 8 }}>
         <button style={tabStyle('templates')} onClick={() => setActiveTab('templates')}>Szablony</button>
+        <button style={tabStyle('campaigns')} onClick={() => setActiveTab('campaigns')}>Kampanie</button>
         <button style={tabStyle('logs')} onClick={() => setActiveTab('logs')}>
           Historia ({logs.length})
         </button>
@@ -233,6 +430,9 @@ const EmailsPage = () => {
           ))}
         </div>
       )}
+
+      {/* Kampanie */}
+      {activeTab === 'campaigns' && <CampaignTab isDark={isDark} />}
 
       {/* Historia */}
       {activeTab === 'logs' && (

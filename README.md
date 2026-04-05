@@ -9,7 +9,7 @@ System zarządzania warsztatem auto detailingu — zlecenia, klienci, pojazdy, p
 1. [Technologie](#technologie)
 2. [Struktura projektu](#struktura-projektu)
 3. [Uruchomienie](#uruchomienie)
-4. [Zmienne środowiskowe](#zmienne-środowiskowe)
+4. [Konfiguracja](#konfiguracja)
 5. [Schemat bazy danych](#schemat-bazy-danych)
 6. [Funkcje systemu](#funkcje-systemu)
 7. [API — endpointy](#api--endpointy)
@@ -39,6 +39,7 @@ autodetailing-crm/
 │   ├── src/
 │   │   ├── index.js                  ← entry point, Express + rejestracja tras
 │   │   ├── config/
+│   │   │   ├── appConfig.js          ← CENTRALNA KONFIGURACJA APLIKACJI ★
 │   │   │   └── db.js                 ← pool PostgreSQL + auto-migracja przy starcie
 │   │   ├── middleware/
 │   │   │   └── auth.js               ← JWT: auth, adminOnly, managerOrAdmin
@@ -67,16 +68,18 @@ autodetailing-crm/
 │   │   │   ├── pdfRoutes.js
 │   │   │   ├── reportRoutes.js       ← raporty i statystyki (admin + manager)
 │   │   │   ├── icalRoutes.js         ← subskrypcja kalendarza iCal
+│   │   │   ├── campaignRoutes.js     ← kampanie mailowe
 │   │   │   └── twoFactorRoutes.js
 │   │   └── services/
 │   │       ├── emailService.js       ← wysyłanie emaili, szablony HTML, logi
-│   │       ├── emailScheduler.js     ← cron co godzinę, automatyczne maile
+│   │       ├── emailScheduler.js     ← cron, automatyczne maile
 │   │       └── pdfService.js         ← generowanie PDF (puppeteer)
 │   ├── seed_orders.js                ← skrypt do generowania zleceń testowych
 │   ├── .env                          ← zmienne środowiskowe (nie commitować!)
 │   └── package.json
 └── frontend/
     ├── src/
+    │   ├── config.js                 ← CENTRALNA KONFIGURACJA FRONTENDU ★
     │   ├── main.jsx
     │   ├── App.jsx                   ← routing aplikacji
     │   ├── index.css                 ← globalne style, CSS variables, dark mode
@@ -93,6 +96,7 @@ autodetailing-crm/
     │   │   ├── GlobalSearch.jsx      ← wyszukiwarka globalna
     │   │   ├── NotificationBell.jsx  ← powiadomienia (polling co 60s)
     │   │   ├── CollapsibleOrders.jsx ← zwijana lista zleceń z paginacją
+    │   │   ├── DamageMap.jsx         ← mapa uszkodzeń pojazdu (SVG)
     │   │   ├── NotesSection.jsx      ← notatki (klient/pojazd/zlecenie)
     │   │   ├── OrderAssignments.jsx  ← przypisania pracowników
     │   │   ├── Pagination.jsx        ← paginacja
@@ -118,6 +122,7 @@ autodetailing-crm/
     │       └── vehicles/
     │           ├── VehiclesPage.jsx
     │           └── VehicleDetailPage.jsx
+    ├── .env                          ← zmienne środowiskowe frontendu (nie commitować!)
     └── package.json
 ```
 
@@ -135,7 +140,7 @@ autodetailing-crm/
 ```bash
 cd backend
 npm install
-# Utwórz plik .env (patrz sekcja niżej)
+# Utwórz plik .env (patrz sekcja Konfiguracja)
 # Utwórz bazę danych: createdb autodetailing_crm
 npm run dev    # nodemon (development)
 npm start      # node (production)
@@ -168,38 +173,87 @@ node seed_orders.js
 
 ---
 
-## Zmienne środowiskowe
+## Konfiguracja
 
-Utwórz plik `backend/.env`:
+### Pliki konfiguracyjne
+
+| Plik | Dotyczy | Opis |
+|------|---------|------|
+| `backend/src/config/appConfig.js` | Backend | Centralna konfiguracja — czyta z `.env`, definiuje wartości domyślne |
+| `frontend/src/config.js` | Frontend | Centralna konfiguracja — czyta zmienne `VITE_*` z `.env` |
+| `backend/.env` | Backend | Zmienne środowiskowe (hasła, klucze, porty) — **nie commitować!** |
+| `frontend/.env` | Frontend | Zmienne środowiskowe Vite — **nie commitować!** |
+
+### Backend — `backend/.env`
 
 ```env
-PORT=5000
+# ─── Firma ────────────────────────────────────────────────────────────────────
+COMPANY_NAME=Auto Detailing
+COMPANY_SLUG=autodetailing-crm
 
-# Baza danych
+# ─── Serwer ───────────────────────────────────────────────────────────────────
+PORT=5000
+FRONTEND_URL=http://localhost:5173
+BACKEND_URL=http://localhost:5000
+
+# ─── Baza danych ──────────────────────────────────────────────────────────────
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=autodetailing_crm
 DB_USER=postgres
 DB_PASSWORD=twoje_haslo
 
-# JWT
+# ─── JWT / Bezpieczeństwo ─────────────────────────────────────────────────────
 JWT_SECRET=losowy_dlugi_string_min_32_znaki
+JWT_EXPIRY=8h
+BCRYPT_ROUNDS=10
 
-# Email (Gmail)
+# ─── Email (Gmail) ────────────────────────────────────────────────────────────
+EMAIL_SERVICE=gmail
 EMAIL_USER=twoj@gmail.com
 EMAIL_PASS=haslo_aplikacji_gmail   # App Password, nie hasło konta
 EMAIL_FROM="Auto Detailing <twoj@gmail.com>"
 
-# CORS
-FRONTEND_URL=http://localhost:5173
+# ─── Rate limiting (opcjonalne nadpisanie wartości domyślnych) ─────────────────
+# RATE_LOGIN_WINDOW_MS=900000   # 15 minut
+# RATE_LOGIN_MAX=20
+# RATE_API_WINDOW_MS=60000      # 1 minuta
+# RATE_API_MAX=200
 
-# URL backendu — używany do generowania linków iCal
-# Zostaw puste lub localhost → system użyje automatycznie wykrytego lokalnego IP sieci
-# Na produkcji ustaw pełny URL: https://crm.twojadomena.pl
-BACKEND_URL=http://localhost:5000
+# ─── Scheduler emaili (opcjonalne nadpisanie wartości domyślnych) ──────────────
+# EMAIL_CRON=0 * * * *          # co godzinę
+# EMAIL_STARTUP_DELAY_MS=5000   # 5 sekund po starcie serwera
 ```
 
 > **Gmail App Password**: Konto Google → Bezpieczeństwo → Weryfikacja dwuetapowa → Hasła do aplikacji
+
+### Frontend — `frontend/.env`
+
+```env
+VITE_API_URL=http://localhost:5000/api
+VITE_COMPANY_NAME=Auto Detailing
+```
+
+> **Uwaga**: zmienne Vite muszą mieć prefix `VITE_` — inaczej nie będą dostępne w przeglądarce.
+
+### Zmiana nazwy firmy
+
+Aby zmienić nazwę firmy w całym systemie (PDF, iCal, 2FA, maile testowe):
+
+1. W `backend/.env` ustaw `COMPANY_NAME=Twoja Firma`
+2. W `frontend/.env` ustaw `VITE_COMPANY_NAME=Twoja Firma`
+3. Zrestartuj backend i przebuduj frontend (`npm run build`)
+
+### Wdrożenie produkcyjne
+
+```env
+# backend/.env
+BACKEND_URL=https://crm.twojadomena.pl
+FRONTEND_URL=https://crm.twojadomena.pl
+
+# frontend/.env
+VITE_API_URL=https://crm.twojadomena.pl/api
+```
 
 ---
 
@@ -257,6 +311,7 @@ CREATE TABLE orders (
   paid_cash DECIMAL(10,2) DEFAULT 0,
   paid_card DECIMAL(10,2) DEFAULT 0,
   invoice_number VARCHAR(100),
+  damage_map JSONB,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -346,7 +401,7 @@ INSERT INTO email_templates (type, name, subject, body, enabled, delay_days) VAL
    '<p>Dzień dobry {{client_name}},</p><p>Informujemy, że Twój pojazd {{vehicle_brand}} {{vehicle_model}} jest gotowy do odbioru.</p><p>Zapraszamy!</p>',
    true, 0),
   ('reminder_24h', 'Przypomnienie o wizycie',
-   'Przypomnienie — jutro wizyta w Auto Detailing',
+   'Przypomnienie — jutro wizyta',
    '<p>Dzień dobry {{client_name}},</p><p>Przypominamy o jutrzejszej wizycie: <strong>{{service_name}}</strong>.</p><p>Do zobaczenia!</p>',
    true, 0),
   ('followup_short', 'Follow-up krótki (4 dni)',
@@ -398,11 +453,12 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 ### Pojazdy
 - CRUD przypisane do klienta
 - Historia usług
+- Mapa uszkodzeń (SVG, 5 widoków, 3 typy uszkodzeń)
 - Notatki
 
 ### Raporty (admin + manager)
 - Przedziały: tydzień, miesiąc, poprzedni miesiąc, rok, własny zakres dat
-- Przychód, liczba zleceń, wartość średnia, podział gotówka/karta
+- Przychód, liczba zleceń, wartość średnia — z deltą `↑/↓ X%` względem poprzedniego okresu tej samej długości
 - Wykres dzienny przychodów
 - Top 10 usług (liczba i wartość)
 - Ranking pracowników — kliknięcie otwiera modal ze szczegółami pracownika (liczba zleceń, przychód, top usługi, statusy, ostatnie zlecenia)
@@ -411,6 +467,7 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 ### Katalog usług (admin)
 - Zarządzanie usługami (nazwa, opis, cena bazowa, kolejność)
 - Aktywacja / deaktywacja
+- 18 usług domyślnych wstawianych automatycznie przy pierwszym starcie
 
 ### Harmonogram
 - Widok tygodniowy (pon–ndz), nawigacja między tygodniami
@@ -439,12 +496,21 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 
 ### Panel mailowy (admin + manager)
 - Edycja szablonów HTML (admin)
-- Historia wysłanych z paginacją
+- Historia wysłanych z paginacją (kampanie widoczne jako osobny typ)
 - Wysyłanie testowe per szablon (admin)
 - Ręczne uruchamianie schedulera (admin)
+- **Kampanie**: segmentacja klientów (dni od ostatniej wizyty, status, min. liczba wizyt) → podgląd listy → masowa wysyłka z własnym tematem i treścią HTML
+
+### Mapa uszkodzeń
+- Zakładka "Mapa uszkodzeń" w każdym zleceniu
+- 5 widoków SVG: góra, przód, tył, lewo, prawo
+- 3 typy uszkodzeń: Zarysowanie (pomarańczowy), Wgniecenie (czerwony), Inne (niebieski)
+- Lista zaznaczonych punktów z możliwością usuwania
+- Zapis do bazy danych per zlecenie (`damage_map JSONB`)
 
 ### 2FA (TOTP)
 - Konfiguracja przez QR code (Google Authenticator, Authy)
+- Nazwa w aplikacji autentykator pochodzi z `COMPANY_NAME` w `.env`
 - Per-użytkownik, opcjonalne
 
 ---
@@ -484,6 +550,7 @@ Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (opróc
 | POST | `/api/orders` | Nowe zlecenie |
 | GET | `/api/orders/:id` | Szczegóły |
 | PUT | `/api/orders/:id` | Edycja |
+| PUT | `/api/orders/:id/damage` | Zapisz mapę uszkodzeń (`{ damage_map: [] }`) |
 | PATCH | `/api/orders/:id/status` | Zmiana statusu |
 | DELETE | `/api/orders/:id` | Usuń (tylko admin) |
 | GET | `/api/orders/:id/history` | Historia zmian (admin + manager) |
@@ -494,6 +561,12 @@ Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (opróc
 |--------|---------|------|
 | GET | `/api/reports` | Statystyki (`?from=`, `?to=`) — admin + manager |
 | GET | `/api/reports/employee/:userId` | Statystyki pracownika (`?from=`, `?to=`) — admin + manager |
+
+### Kampanie
+| Metoda | Ścieżka | Opis |
+|--------|---------|------|
+| GET | `/api/campaigns/preview` | Klienci pasujący do filtrów (`?days_inactive=`, `?status=`, `?min_orders=`) |
+| POST | `/api/campaigns/send` | Wyślij kampanię (`{ subject, body, client_ids }`) |
 
 ### Katalog usług
 | Metoda | Ścieżka | Opis |
@@ -582,10 +655,10 @@ Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (opróc
 
 ## Bezpieczeństwo
 
-- **JWT** — tokeny 8h; wygaśnięcie pokazuje komunikat zamiast cichego przekierowania
-- **bcrypt** — hashowanie haseł (rounds: 10)
+- **JWT** — tokeny 8h (konfigurowalne przez `JWT_EXPIRY`); wygaśnięcie pokazuje komunikat zamiast cichego przekierowania
+- **bcrypt** — hashowanie haseł (rounds: 10, konfigurowalne przez `BCRYPT_ROUNDS`)
 - **2FA TOTP** — opcjonalne per użytkownik
-- **Rate limiting** — login: 20 req/15min, API: 200 req/min
+- **Rate limiting** — login: 20 req/15min, API: 200 req/min (konfigurowalne przez `RATE_*`)
 - **Helmet** — bezpieczne nagłówki HTTP
 - **CORS** — skonfigurowany na `FRONTEND_URL`
 - **Parametryzowane zapytania SQL** — ochrona przed SQL injection
@@ -593,9 +666,10 @@ Wszystkie endpointy wymagają nagłówka `Authorization: Bearer <token>` (opróc
 
 ### Plik .env
 
-Upewnij się, że `.env` jest w `.gitignore`:
+Upewnij się, że pliki `.env` są w `.gitignore`:
 
 ```
 backend/.env
+frontend/.env
 .env
 ```

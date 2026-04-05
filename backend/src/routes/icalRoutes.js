@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const os = require('os');
 const pool = require('../config/db');
+const config = require('../config/appConfig');
 
 function makeToken(userId) {
   return crypto
@@ -25,13 +26,13 @@ function getLocalIp() {
 }
 
 function getBaseUrl() {
-  const envUrl = process.env.BACKEND_URL || '';
+  const envUrl = config.server.backendUrl;
   // Jeśli ustawiono BACKEND_URL i nie jest to localhost → używaj go (produkcja / ngrok)
   if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
     return envUrl;
   }
   // Inaczej → lokalny IP sieci żeby iPhone na tym samym WiFi mógł subskrybować
-  return `http://${getLocalIp()}:${process.env.PORT || 5000}`;
+  return `http://${getLocalIp()}:${config.server.port}`;
 }
 
 // GET /api/ical/token  — zwraca token dla zalogowanego użytkownika (wymaga JWT)
@@ -151,11 +152,11 @@ router.get('/:userId/:token', async (req, res) => {
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//Auto Detailing CRM//Auto Detailing//PL',
+      `PRODID:-//${config.company.name}//${config.company.slug}//PL`,
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       `X-WR-CALNAME:CRM - ${escapeText(userName)}`,
-      'X-WR-CALDESC:Harmonogram zlecen Auto Detailing CRM',
+      `X-WR-CALDESC:Harmonogram zlecen ${config.company.name}`,
     ];
 
     for (const order of ordersRes.rows) {
@@ -176,7 +177,7 @@ router.get('/:userId/:token', async (req, res) => {
 
       lines.push(
         'BEGIN:VEVENT',
-        `UID:crm-order-${order.id}@autodetailing-crm`,
+        `UID:crm-order-${order.id}@${config.company.slug}`,
         `DTSTAMP:${now}`,
         `DTSTART;VALUE=DATE:${dtstart}`,
         `DTEND;VALUE=DATE:${dtend}`,

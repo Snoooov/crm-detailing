@@ -30,6 +30,7 @@ pool.connect()
         END $$;
 
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS invoice_number VARCHAR(100);
+        ALTER TABLE orders ADD COLUMN IF NOT EXISTS damage_map JSONB DEFAULT '[]';
         ALTER TABLE orders ADD COLUMN IF NOT EXISTS service_catalog_id INTEGER;
         CREATE TABLE IF NOT EXISTS service_catalog (
           id SERIAL PRIMARY KEY,

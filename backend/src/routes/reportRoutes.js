@@ -11,7 +11,16 @@ router.get('/', auth, managerOrAdmin, async (req, res) => {
     const dateFrom = from || new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
     const dateTo = to || new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
 
-    const [summary, revenueByDay, topServices, employeeStats, paymentBreakdown] = await Promise.all([
+    // Poprzedni okres tej samej długości
+    const fromDate = new Date(dateFrom + 'T00:00:00Z');
+    const toDate = new Date(dateTo + 'T00:00:00Z');
+    const periodDays = Math.round((toDate - fromDate) / 86400000);
+    const prevTo = new Date(fromDate); prevTo.setUTCDate(prevTo.getUTCDate() - 1);
+    const prevFrom = new Date(prevTo); prevFrom.setUTCDate(prevFrom.getUTCDate() - periodDays);
+    const prevDateFrom = prevFrom.toISOString().split('T')[0];
+    const prevDateTo = prevTo.toISOString().split('T')[0];
+
+    const [summary, revenueByDay, topServices, employeeStats, paymentBreakdown, prevSummary] = await Promise.all([
 
       pool.query(`
         SELECT
@@ -77,11 +86,22 @@ router.get('/', auth, managerOrAdmin, async (req, res) => {
           AND status != 'cancelled'
         GROUP BY is_paid
       `, [dateFrom, dateTo]),
+
+      pool.query(`
+        SELECT
+          COUNT(*) FILTER (WHERE status != 'cancelled') as total_orders,
+          COALESCE(SUM(price) FILTER (WHERE is_paid = TRUE AND status != 'cancelled'), 0) as total_revenue,
+          COALESCE(AVG(price) FILTER (WHERE is_paid = TRUE AND status != 'cancelled'), 0) as avg_order_value
+        FROM orders
+        WHERE date_from BETWEEN $1 AND $2
+      `, [prevDateFrom, prevDateTo]),
     ]);
 
     res.json({
       period: { from: dateFrom, to: dateTo },
+      prevPeriod: { from: prevDateFrom, to: prevDateTo },
       summary: summary.rows[0],
+      prevSummary: prevSummary.rows[0],
       revenueByDay: revenueByDay.rows,
       topServices: topServices.rows,
       employeeStats: employeeStats.rows,

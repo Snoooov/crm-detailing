@@ -43,10 +43,24 @@ function getPresetDates(key) {
   return null;
 }
 
-const SummaryCard = ({ label, value, sub, color }) => (
+const Delta = ({ current, prev }) => {
+  const c = parseFloat(current) || 0;
+  const p = parseFloat(prev) || 0;
+  if (p === 0) return null;
+  const pct = Math.round(((c - p) / p) * 100);
+  const positive = pct >= 0;
+  return (
+    <div style={{ fontSize: 12, color: positive ? '#16a34a' : '#ef4444', fontWeight: 600, marginTop: 4 }}>
+      {positive ? '↑' : '↓'} {Math.abs(pct)}% vs poprzedni okres
+    </div>
+  );
+};
+
+const SummaryCard = ({ label, value, sub, color, rawCurrent, rawPrev }) => (
   <div className="card" style={{ borderTop: `3px solid ${color}` }}>
     <div style={{ fontSize: 12, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
     <div style={{ fontSize: 26, fontWeight: 700, color }}>{value}</div>
+    <Delta current={rawCurrent} prev={rawPrev} />
     {sub && <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>{sub}</div>}
   </div>
 );
@@ -383,18 +397,24 @@ const ReportsPage = () => {
               value={fmt(data.summary.total_revenue)}
               sub="tylko opłacone"
               color="#2563eb"
+              rawCurrent={data.summary.total_revenue}
+              rawPrev={data.prevSummary?.total_revenue}
             />
             <SummaryCard
               label="Liczba zleceń"
               value={totalOrders}
               sub={`${data.summary.cancelled_orders} anulowanych`}
               color="#16a34a"
+              rawCurrent={data.summary.total_orders}
+              rawPrev={data.prevSummary?.total_orders}
             />
             <SummaryCard
               label="Śr. wartość zlecenia"
               value={fmt(data.summary.avg_order_value)}
               sub="opłacone zlecenia"
               color="#d97706"
+              rawCurrent={data.summary.avg_order_value}
+              rawPrev={data.prevSummary?.avg_order_value}
             />
             <SummaryCard
               label="Nieopłacone"

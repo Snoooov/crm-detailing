@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
+import config from '../../config.js';
 
 const OrderReceptionCard = () => {
   const { id } = useParams();
@@ -23,7 +24,7 @@ const OrderReceptionCard = () => {
   const handleGeneratePDF = async () => {
     try {
       const token = localStorage.getItem('token');
-      const url = `http://localhost:5000/api/pdf/orders/${id}/reception`;
+      const url = `${config.apiUrl}/pdf/orders/${id}/reception`;
       const response = await fetch(url, {
         headers: { Authorization: `Bearer ${token}` }
       });

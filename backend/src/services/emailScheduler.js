@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const pool = require('../config/db');
 const { sendOrderEmail } = require('./emailService');
+const config = require('../config/appConfig');
 
 const getOrderWithDetails = async (orderId) => {
   const result = await pool.query(
@@ -131,11 +132,9 @@ const runEmailJobs = async () => {
 };
 
 const startScheduler = () => {
-  // Co godzinę
-  cron.schedule('0 * * * *', runEmailJobs);
-  // Uruchom też od razu przy starcie serwera
-  setTimeout(runEmailJobs, 5000);
-  console.log('[Email Scheduler] Uruchomiony — sprawdza co godzinę');
+  cron.schedule(config.scheduler.cronExpression, runEmailJobs);
+  setTimeout(runEmailJobs, config.scheduler.startupDelayMs);
+  console.log(`[Email Scheduler] Uruchomiony — cron: ${config.scheduler.cronExpression}`);
 };
 
 module.exports = { startScheduler, runEmailJobs };

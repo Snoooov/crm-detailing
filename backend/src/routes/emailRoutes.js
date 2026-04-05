@@ -4,6 +4,7 @@ const { auth, adminOnly, managerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/db');
 const { runEmailJobs, } = require('../services/emailScheduler');
 const { sendOrderEmail } = require('../services/emailService');
+const config = require('../config/appConfig');
 
 // Lista szablonów
 router.get('/templates', auth, managerOrAdmin, async (req, res) => {
@@ -101,10 +102,10 @@ router.post('/test', auth, adminOnly, async (req, res) => {
 
     const nodemailer = require('nodemailer');
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: config.email.service,
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS,
+        user: config.email.user,
+        pass: config.email.pass,
       },
     });
 
@@ -135,7 +136,7 @@ router.post('/test', auth, adminOnly, async (req, res) => {
       });
 
       await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
+        from: config.email.from,
         to: user.email,
         subject: `[TEST] ${subject}`,
         html: body,
@@ -146,10 +147,10 @@ router.post('/test', auth, adminOnly, async (req, res) => {
 
     // Ogólny mail testowy
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
+      from: config.email.from,
       to: user.email,
-      subject: 'Test systemu mailowego — Auto Detailing CRM',
-      html: `Cześć ${user.name},\n\nTo jest testowa wiadomość z systemu CRM.\n\nJeśli widzisz tego maila — konfiguracja działa poprawnie!\n\nZespół Auto Detailing`,
+      subject: `Test systemu mailowego — ${config.company.name}`,
+      html: `Cześć ${user.name},\n\nTo jest testowa wiadomość z systemu CRM.\n\nJeśli widzisz tego maila — konfiguracja działa poprawnie!\n\nZespół ${config.company.name}`,
     });
 
     res.json({ message: `Mail testowy wysłany na ${user.email}` });

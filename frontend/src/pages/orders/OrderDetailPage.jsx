@@ -4,6 +4,7 @@ import api from '../../api/axios.js';
 import PaymentSection from '../../components/PaymentSection.jsx';
 import NotesSection from '../../components/NotesSection.jsx';
 import OrderAssignments from '../../components/OrderAssignments.jsx';
+import DamageMap from '../../components/DamageMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useDarkMode from '../../hooks/useDarkMode.js';
 import { ORDER_STATUSES as STATUSES } from '../../constants/orderStatuses.js';
@@ -187,8 +188,15 @@ const OrderDetailPage = () => {
       {/* Tabs */}
       <div style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: 24, display: 'flex', gap: 8 }}>
         <button style={tabStyle('details')} onClick={() => setActiveTab('details')}>Szczegóły</button>
+        <button style={tabStyle('damage')} onClick={() => setActiveTab('damage')}>Mapa uszkodzeń</button>
         {isPrivileged && <button style={tabStyle('history')} onClick={() => setActiveTab('history')}>Historia zmian</button>}
       </div>
+
+      {activeTab === 'damage' && (
+        <div style={{ maxWidth: 640 }}>
+          <DamageMap orderId={id} initialMap={order.damage_map} editable={canEdit} />
+        </div>
+      )}
 
       {activeTab === 'history' && isPrivileged && (
         <div className="card" style={{ maxWidth: 640 }}>
