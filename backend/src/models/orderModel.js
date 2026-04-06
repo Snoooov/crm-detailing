@@ -96,7 +96,7 @@ const createOrder = async ({ client_id, vehicle_id, service_catalog_id, service_
     `INSERT INTO orders (client_id, vehicle_id, service_catalog_id, service_name, service_description, date_from, date_to, price, status, notes, is_paid, paid_cash, paid_card, invoice_number)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
      RETURNING *`,
-    [client_id, vehicle_id, service_catalog_id || null, service_name, service_description, date_from, date_to, price, status || 'inspection', notes, is_paid || false, paid_cash || 0, paid_card || 0, invoice_number || null]
+    [client_id, vehicle_id, service_catalog_id || null, service_name, service_description, date_from || null, date_to || null, (price !== '' && price !== null && price !== undefined) ? price : null, status || 'inspection', notes || null, is_paid || false, paid_cash || 0, paid_card || 0, invoice_number || null]
   );
   return result.rows[0];
 };
@@ -110,7 +110,7 @@ const updateOrder = async (id, { client_id, vehicle_id, service_catalog_id, serv
          invoice_number = $14
      WHERE id = $15
      RETURNING *`,
-    [client_id, vehicle_id, service_catalog_id || null, service_name, service_description, date_from, date_to, price, status, notes, is_paid || false, paid_cash || 0, paid_card || 0, invoice_number || null, id]
+    [client_id, vehicle_id, service_catalog_id || null, service_name, service_description, date_from || null, date_to || null, (price !== '' && price !== null && price !== undefined) ? price : null, status, notes || null, is_paid || false, paid_cash || 0, paid_card || 0, invoice_number || null, id]
   );
   return result.rows[0];
 };

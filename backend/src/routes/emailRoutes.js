@@ -3,8 +3,9 @@ const router = express.Router();
 const { auth, adminOnly, managerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/db');
 const { runEmailJobs, } = require('../services/emailScheduler');
-const { sendOrderEmail } = require('../services/emailService');
+const { sendOrderEmail, wrapEmailHtml } = require('../services/emailService');
 const config = require('../config/appConfig');
+const { getCompany } = require('../utils/companySettings');
 
 // Lista szablonów
 router.get('/templates', auth, managerOrAdmin, async (req, res) => {
@@ -49,7 +50,7 @@ router.get('/logs', auth, managerOrAdmin, async (req, res) => {
   }
 });
 
-const VALID_EMAIL_TYPES = ['confirmation', 'ready', 'reminder_24h', 'followup_short', 'followup_long'];
+const VALID_EMAIL_TYPES = ['confirmation', 'ready', 'reminder_24h', 'followup_short', 'followup_long', 'date_changed'];
 
 // Wyślij mail ręcznie do zlecenia
 router.post('/send/:orderId/:type', auth, adminOnly, async (req, res) => {
@@ -118,6 +119,7 @@ router.post('/test', auth, adminOnly, async (req, res) => {
       const template = templateResult.rows[0];
       if (!template) return res.status(404).json({ error: 'Szablon nie znaleziony' });
 
+      const company = await getCompany();
       const testVars = {
         client_name: 'Jan',
         vehicle_brand: 'BMW',
@@ -126,31 +128,39 @@ router.post('/test', auth, adminOnly, async (req, res) => {
         service_name: 'Detailing kompleksowy',
         date_from: new Date().toLocaleDateString('pl-PL'),
         date_to: new Date().toLocaleDateString('pl-PL'),
+        company_name:    company.name,
+        company_address: company.address,
+        company_phone:   company.phone,
+        company_email:   company.email_contact,
+        company_nip:     company.nip,
+        company_website: company.website,
       };
 
       let subject = template.subject;
       let body = template.body;
       Object.entries(testVars).forEach(([key, value]) => {
-        subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value);
-        body = body.replace(new RegExp(`{{${key}}}`, 'g'), value);
+        subject = subject.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
+        body = body.replace(new RegExp(`{{${key}}}`, 'g'), value || '');
       });
 
       await transporter.sendMail({
         from: config.email.from,
         to: user.email,
         subject: `[TEST] ${subject}`,
-        html: body,
+        html: wrapEmailHtml(body, company),
       });
 
       return res.json({ message: `Mail testowy "${template.name}" wysłany na ${user.email}` });
     }
 
     // Ogólny mail testowy
+    const company = await getCompany();
+    const testBody = `Cześć ${user.name},\n\nTo jest testowa wiadomość z systemu CRM.\n\nJeśli widzisz tego maila — konfiguracja działa poprawnie!`;
     await transporter.sendMail({
       from: config.email.from,
       to: user.email,
-      subject: `Test systemu mailowego — ${config.company.name}`,
-      html: `Cześć ${user.name},\n\nTo jest testowa wiadomość z systemu CRM.\n\nJeśli widzisz tego maila — konfiguracja działa poprawnie!\n\nZespół ${config.company.name}`,
+      subject: `Test systemu mailowego — ${company.name}`,
+      html: wrapEmailHtml(testBody, company),
     });
 
     res.json({ message: `Mail testowy wysłany na ${user.email}` });

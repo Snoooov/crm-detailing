@@ -17,6 +17,7 @@ import UsersPage from './pages/UsersPage.jsx';
 import EmailsPage from './pages/EmailsPage.jsx';
 import ServiceCatalogPage from './pages/ServiceCatalogPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
+import LogsPage from './pages/LogsPage.jsx';
 
 const DefaultRedirect = () => <Navigate to="/dashboard" />;
 
@@ -54,6 +55,7 @@ function App() {
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="users" element={<UsersPage />} />
+            <Route path="logs" element={<LogsPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -8,6 +8,7 @@ const TYPE_NAMES = {
   confirmation: 'Potwierdzenie rezerwacji',
   reminder_24h: 'Przypomnienie 24h przed',
   ready: 'Auto gotowe do odbioru',
+  date_changed: 'Zmiana terminu',
   followup_short: 'Follow-up (4 dni po)',
   followup_long: 'Follow-up (30 dni po)',
   campaign: 'Kampania',
@@ -129,49 +130,99 @@ const CampaignTab = ({ isDark }) => {
 
       {/* Client list */}
       {preview !== null && (
-        <div className="card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 20px', borderBottom: `1px solid ${border}` }}>
             <div style={{ fontWeight: 600, fontSize: 14 }}>
               Klienci ({preview.length})
               {selectedIds.length > 0 && (
                 <span style={{ color: '#2563eb', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>
-                  {selectedIds.length} zaznaczonych
+                  · {selectedIds.length} zaznaczonych
                 </span>
               )}
             </div>
             {preview.length > 0 && (
-              <button className="btn-secondary" style={{ fontSize: 12, padding: '3px 10px' }} onClick={toggleAll}>
+              <button className="btn-secondary" style={{ fontSize: 12, padding: '4px 12px' }} onClick={toggleAll}>
                 {selectedIds.length === preview.length ? 'Odznacz wszystkich' : 'Zaznacz wszystkich'}
               </button>
             )}
           </div>
 
           {preview.length === 0 ? (
-            <div style={{ textAlign: 'center', padding: '24px 0', color: '#6b7280', fontSize: 13 }}>Brak klientów spełniających kryteria</div>
+            <div style={{ textAlign: 'center', padding: '32px 0', color: '#6b7280', fontSize: 13 }}>
+              Brak klientów spełniających kryteria
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxHeight: 300, overflowY: 'auto' }}>
-              {preview.map(c => (
-                <label key={c.id} style={{
-                  display: 'flex', alignItems: 'center', gap: 10,
-                  background: selectedIds.includes(c.id) ? (isDark ? '#1e3a5f' : '#eff6ff') : bg,
-                  border: `1px solid ${selectedIds.includes(c.id) ? '#2563eb' : border}`,
-                  borderRadius: 6, padding: '8px 12px', cursor: 'pointer', fontSize: 13,
-                }}>
-                  <input type="checkbox" checked={selectedIds.includes(c.id)} onChange={() => toggleClient(c.id)} />
-                  <div style={{ flex: 1 }}>
-                    <span style={{ fontWeight: 500 }}>{c.full_name}</span>
-                    {c.status !== 'normal' && (
-                      <span style={{ marginLeft: 6, fontSize: 11, color: c.status === 'vip' ? '#7c3aed' : '#0891b2', fontWeight: 600 }}>
-                        {CLIENT_STATUS_LABELS[c.status]}
-                      </span>
-                    )}
-                  </div>
-                  <div style={{ textAlign: 'right', fontSize: 12, color: '#6b7280' }}>
-                    <div>{c.email}</div>
-                    <div>Wizyty: {c.total_orders} · Ostatnia: {fmtDate(c.last_visit)}</div>
-                  </div>
-                </label>
-              ))}
+            <div style={{ maxHeight: 360, overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr style={{ background: isDark ? '#1e293b' : '#f8fafc' }}>
+                    <th style={{ width: 36, padding: '8px 0 8px 16px', textAlign: 'center' }}>
+                      <input
+                        type="checkbox"
+                        checked={preview.length > 0 && selectedIds.length === preview.length}
+                        onChange={toggleAll}
+                        style={{ cursor: 'pointer' }}
+                      />
+                    </th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Klient</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>E-mail</th>
+                    <th style={{ padding: '8px 12px', textAlign: 'center', fontSize: 12, fontWeight: 600, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Wizyty</th>
+                    <th style={{ padding: '8px 16px 8px 12px', textAlign: 'right', fontSize: 12, fontWeight: 600, color: isDark ? '#94a3b8' : '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Ostatnia wizyta</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {preview.map((c, i) => {
+                    const selected = selectedIds.includes(c.id);
+                    return (
+                      <tr
+                        key={c.id}
+                        onClick={() => toggleClient(c.id)}
+                        style={{
+                          cursor: 'pointer',
+                          background: selected
+                            ? (isDark ? '#1e3a5f' : '#eff6ff')
+                            : (i % 2 === 0 ? 'transparent' : (isDark ? '#ffffff08' : '#f9fafb')),
+                          borderTop: `1px solid ${border}`,
+                          transition: 'background 0.1s',
+                        }}
+                      >
+                        <td style={{ padding: '10px 0 10px 16px', textAlign: 'center' }}>
+                          <input
+                            type="checkbox"
+                            checked={selected}
+                            onChange={() => toggleClient(c.id)}
+                            onClick={e => e.stopPropagation()}
+                            style={{ cursor: 'pointer' }}
+                          />
+                        </td>
+                        <td style={{ padding: '10px 12px' }}>
+                          <span style={{ fontWeight: 500, fontSize: 13 }}>{c.full_name}</span>
+                          {c.status && c.status !== 'normal' && (
+                            <span style={{
+                              marginLeft: 8, fontSize: 10, fontWeight: 700, borderRadius: 99,
+                              padding: '2px 7px', verticalAlign: 'middle',
+                              background: c.status === 'vip' ? (isDark ? '#4c1d9522' : '#f5f3ff') : (isDark ? '#0c4a6e22' : '#f0f9ff'),
+                              color: c.status === 'vip' ? '#7c3aed' : '#0891b2',
+                              border: `1px solid ${c.status === 'vip' ? '#7c3aed44' : '#0891b244'}`,
+                            }}>
+                              {CLIENT_STATUS_LABELS[c.status]}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: '10px 12px', fontSize: 13, color: isDark ? '#94a3b8' : '#6b7280' }}>
+                          {c.email}
+                        </td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: 13, fontWeight: 600, color: isDark ? '#e2e8f0' : '#374151' }}>
+                          {c.total_orders}
+                        </td>
+                        <td style={{ padding: '10px 16px 10px 12px', textAlign: 'right', fontSize: 13, color: isDark ? '#94a3b8' : '#6b7280' }}>
+                          {fmtDate(c.last_visit)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           )}
         </div>

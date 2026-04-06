@@ -4,13 +4,14 @@ const speakeasy = require('speakeasy');
 const qrcode = require('qrcode');
 const { auth } = require('../middleware/auth');
 const pool = require('../config/db');
-const config = require('../config/appConfig');
+const { getCompany } = require('../utils/companySettings');
 
 // Generuj sekret i kod QR
 router.post('/setup', auth, async (req, res) => {
   try {
+    const company = await getCompany();
     const secret = speakeasy.generateSecret({
-      name: `${config.company.name} (${req.user.email})`,
+      name: `${company.name} (${req.user.email})`,
       length: 20,
     });
 

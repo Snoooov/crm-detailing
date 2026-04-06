@@ -96,7 +96,7 @@ autodetailing-crm/
     │   │   ├── GlobalSearch.jsx      ← wyszukiwarka globalna
     │   │   ├── NotificationBell.jsx  ← powiadomienia (polling co 60s)
     │   │   ├── CollapsibleOrders.jsx ← zwijana lista zleceń z paginacją
-    │   │   ├── DamageMap.jsx         ← mapa uszkodzeń pojazdu (SVG)
+    │   │   ├── DamageMap.jsx         ← mapa uszkodzeń pojazdu (obraz + SVG overlay)
     │   │   ├── NotesSection.jsx      ← notatki (klient/pojazd/zlecenie)
     │   │   ├── OrderAssignments.jsx  ← przypisania pracowników
     │   │   ├── Pagination.jsx        ← paginacja
@@ -453,7 +453,7 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 ### Pojazdy
 - CRUD przypisane do klienta
 - Historia usług
-- Mapa uszkodzeń (SVG, 5 widoków, 3 typy uszkodzeń)
+- Mapa uszkodzeń (obraz PNG, 3 typy uszkodzeń z notatkami)
 - Notatki
 
 ### Raporty (admin + manager)
@@ -502,11 +502,58 @@ VALUES ('admin@crm.pl', '$2b$10$...wklejony_hash...', 'Administrator', 'admin');
 - **Kampanie**: segmentacja klientów (dni od ostatniej wizyty, status, min. liczba wizyt) → podgląd listy → masowa wysyłka z własnym tematem i treścią HTML
 
 ### Mapa uszkodzeń
-- Zakładka "Mapa uszkodzeń" w każdym zleceniu
-- 5 widoków SVG: góra, przód, tył, lewo, prawo
-- 3 typy uszkodzeń: Zarysowanie (pomarańczowy), Wgniecenie (czerwony), Inne (niebieski)
-- Lista zaznaczonych punktów z możliwością usuwania
-- Zapis do bazy danych per zlecenie (`damage_map JSONB`)
+
+Zakładka widoczna w każdym zleceniu. Umożliwia zaznaczanie i opisywanie uszkodzeń bezpośrednio na schemacie pojazdu.
+
+#### Jak działa
+
+1. Otwórz zlecenie → sekcja **Mapa uszkodzeń**
+2. Wybierz typ uszkodzenia: **Zarysowanie** (pomarańczowy) / **Wgniecenie** (czerwony) / **Inne** (niebieski)
+3. Kliknij w dowolne miejsce na schemacie — pojawi się numerowany marker
+4. Pod każdym uszkodzeniem na liście wpisz krótką **notatkę** (np. „głęboka rysa", „wgniecenie drzwi")
+5. Kliknij **Zapisz mapę** — dane trafiają do bazy
+6. Kliknięcie istniejącego markera **usuwa** go (tryb edycji)
+7. Najechanie myszą na marker pokazuje **tooltip** z numerem, typem i notatką
+
+#### Podgląd (tryb read-only)
+
+Gdy komponent używany jest bez `editable` (np. w PDF lub widoku tylko do odczytu):
+- markery są widoczne, ale nie reagują na kliknięcia
+- notatki wyświetlają się jako tekst pod nazwą typu w liście
+
+#### Wymiana schematu pojazdu
+
+Mapa opiera się na pliku graficznym z przezroczystym tłem (PNG), który zawiera schemat pojazdu ze wszystkich stron (góra, przód, tył, boki) w jednym obrazie.
+
+**Aby dodać lub wymienić schemat:**
+
+```
+frontend/public/images/car-damage-map.png
+```
+
+Plik musi mieć dokładnie tę nazwę i znajdować się w tym katalogu. Obraz jest serwowany statycznie przez Vite (`/images/car-damage-map.png`). Po skopiowaniu pliku odśwież aplikację — schemat pojawi się automatycznie.
+
+> Zalecany format: PNG z przezroczystym tłem. Proporcje obrazu są zachowane automatycznie (`width: 100%`, `max-width: 680px`). Możesz użyć dowolnego rysunku technicznego, zdjęcia lub wektorówki wyeksportowanej do PNG.
+
+#### Format danych w bazie
+
+Punkty uszkodzeń zapisywane są w kolumnie `damage_map JSONB` tabeli `orders`:
+
+```json
+[
+  { "id": 1735000000000, "x": 42.5, "y": 18.3, "type": "scratch", "note": "głęboka rysa na masce" },
+  { "id": 1735000000001, "x": 78.1, "y": 61.4, "type": "dent",    "note": "wgniecenie zderzaka" },
+  { "id": 1735000000002, "x": 55.0, "y": 90.2, "type": "other",   "note": "" }
+]
+```
+
+| Pole | Typ | Opis |
+|------|-----|------|
+| `id` | number | timestamp z `Date.now()` — unikalny identyfikator |
+| `x` | number | pozycja pozioma w % szerokości obrazu (0–100) |
+| `y` | number | pozycja pionowa w % wysokości obrazu (0–100) |
+| `type` | string | `scratch` / `dent` / `other` |
+| `note` | string | opcjonalna krótka notatka |
 
 ### 2FA (TOTP)
 - Konfiguracja przez QR code (Google Authenticator, Authy)

@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const pool = require('../config/db');
+const { logAction } = require('../utils/systemLog');
+const getIp = (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || null;
 
 const VALID_ENTITY_TYPES = ['client', 'vehicle', 'order'];
 
@@ -36,6 +38,7 @@ router.post('/:entityType/:entityId', auth, async (req, res) => {
        RETURNING *`,
       [entityType, entityId, content.trim()]
     );
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'note_added', entityType, entityId: parseInt(entityId), details: { content: content.trim().slice(0, 120) }, ipAddress: getIp(req) });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -45,7 +48,12 @@ router.post('/:entityType/:entityId', auth, async (req, res) => {
 
 router.delete('/:id', auth, async (req, res) => {
   try {
+    const noteResult = await pool.query('SELECT * FROM notes WHERE id = $1', [req.params.id]);
+    const note = noteResult.rows[0];
     await pool.query('DELETE FROM notes WHERE id = $1', [req.params.id]);
+    if (note) {
+      await logAction({ userId: req.user.id, userName: req.user.name, action: 'note_deleted', entityType: note.entity_type, entityId: note.entity_id, details: { content: note.content?.slice(0, 120) }, ipAddress: getIp(req) });
+    }
     res.json({ message: 'Notatka usunięta' });
   } catch (err) {
     console.error(err);

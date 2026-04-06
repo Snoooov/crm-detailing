@@ -4,6 +4,7 @@ const crypto = require('crypto');
 const os = require('os');
 const pool = require('../config/db');
 const config = require('../config/appConfig');
+const { getCompany } = require('../utils/companySettings');
 
 function makeToken(userId) {
   return crypto
@@ -149,14 +150,15 @@ router.get('/:userId/:token', async (req, res) => {
       return parts.join('\r\n ');
     };
 
+    const company = await getCompany();
     const lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      `PRODID:-//${config.company.name}//${config.company.slug}//PL`,
+      `PRODID:-//${company.name}//${company.slug}//PL`,
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
       `X-WR-CALNAME:CRM - ${escapeText(userName)}`,
-      `X-WR-CALDESC:Harmonogram zlecen ${config.company.name}`,
+      `X-WR-CALDESC:Harmonogram zlecen ${company.name}`,
     ];
 
     for (const order of ordersRes.rows) {
@@ -177,7 +179,7 @@ router.get('/:userId/:token', async (req, res) => {
 
       lines.push(
         'BEGIN:VEVENT',
-        `UID:crm-order-${order.id}@${config.company.slug}`,
+        `UID:crm-order-${order.id}@${company.slug}`,
         `DTSTAMP:${now}`,
         `DTSTART;VALUE=DATE:${dtstart}`,
         `DTEND;VALUE=DATE:${dtend}`,

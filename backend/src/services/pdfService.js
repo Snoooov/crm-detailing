@@ -1,7 +1,8 @@
 const puppeteer = require('puppeteer');
-const config = require('../config/appConfig');
+const { getCompany } = require('../utils/companySettings');
 
 const generateReceptionCardPDF = async (order) => {
+  const company = await getCompany();
   const browser = await puppeteer.launch({
     headless: 'new',
     args: ['--no-sandbox', '--disable-setuid-sandbox'],
@@ -111,8 +112,8 @@ const generateReceptionCardPDF = async (order) => {
 
   <div class="header">
     <div>
-      <div class="company-name">${config.company.name}</div>
-      <div class="company-sub">Karta przyjęcia pojazdu</div>
+      <div class="company-name">${company.name}</div>
+      <div class="company-sub">${[company.address, company.phone, company.email_contact].filter(Boolean).join(' · ') || 'Karta przyjęcia pojazdu'}</div>
     </div>
     <div class="order-info">
       <div class="order-number">Nr zlecenia: #${order.id}</div>

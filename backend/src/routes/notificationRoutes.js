@@ -70,8 +70,17 @@ router.get('/', auth, async (req, res) => {
       ),
     ]);
 
+    const prefsResult = await pool.query('SELECT notification_prefs FROM users WHERE id = $1', [userId]);
+    const rawPrefs = prefsResult.rows[0]?.notification_prefs || {};
+    const prefs = {
+      show_overdue:  rawPrefs.show_overdue  !== false,
+      show_today:    rawPrefs.show_today    !== false,
+      show_ready:    rawPrefs.show_ready    !== false,
+      show_tomorrow: rawPrefs.show_tomorrow !== false,
+    };
+
     const notifications = [
-      ...overdueOrders.rows.map(o => ({
+      ...(prefs.show_overdue ? overdueOrders.rows.map(o => ({
         id: `overdue-${o.id}`,
         orderId: o.id,
         type: 'overdue',
@@ -80,8 +89,8 @@ router.get('/', auth, async (req, res) => {
         message: `${o.service_name} — ${o.client_name}`,
         sub: `${o.vehicle_brand} ${o.vehicle_model}`,
         color: '#ef4444',
-      })),
-      ...todayOrders.rows.map(o => ({
+      })) : []),
+      ...(prefs.show_today ? todayOrders.rows.map(o => ({
         id: `today-${o.id}`,
         orderId: o.id,
         type: 'today',
@@ -90,8 +99,8 @@ router.get('/', auth, async (req, res) => {
         message: `${o.service_name} — ${o.client_name}`,
         sub: `${o.vehicle_brand} ${o.vehicle_model}`,
         color: '#d97706',
-      })),
-      ...readyOrders.rows.map(o => ({
+      })) : []),
+      ...(prefs.show_ready ? readyOrders.rows.map(o => ({
         id: `ready-${o.id}`,
         orderId: o.id,
         type: 'ready',
@@ -100,8 +109,8 @@ router.get('/', auth, async (req, res) => {
         message: `${o.service_name} — ${o.client_name}`,
         sub: `${o.vehicle_brand} ${o.vehicle_model}`,
         color: '#16a34a',
-      })),
-      ...tomorrowOrders.rows.map(o => ({
+      })) : []),
+      ...(prefs.show_tomorrow ? tomorrowOrders.rows.map(o => ({
         id: `tomorrow-${o.id}`,
         orderId: o.id,
         type: 'tomorrow',
@@ -110,7 +119,7 @@ router.get('/', auth, async (req, res) => {
         message: `${o.service_name} — ${o.client_name}`,
         sub: `${o.vehicle_brand} ${o.vehicle_model}`,
         color: '#2563eb',
-      })),
+      })) : []),
     ];
 
     res.json(notifications);

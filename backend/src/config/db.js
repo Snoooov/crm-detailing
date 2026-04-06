@@ -50,6 +50,37 @@ pool.connect()
           changed_at TIMESTAMP DEFAULT NOW()
         );
         CREATE INDEX IF NOT EXISTS idx_order_history_order ON order_history(order_id);
+
+        ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_prefs JSONB DEFAULT '{}';
+
+        CREATE TABLE IF NOT EXISTS company_settings (
+          id INTEGER PRIMARY KEY DEFAULT 1,
+          name VARCHAR(255) NOT NULL DEFAULT 'Auto Detailing',
+          address TEXT DEFAULT '',
+          phone VARCHAR(50) DEFAULT '',
+          email_contact VARCHAR(255) DEFAULT '',
+          nip VARCHAR(20) DEFAULT '',
+          website VARCHAR(255) DEFAULT '',
+          updated_at TIMESTAMP DEFAULT NOW(),
+          CONSTRAINT single_row CHECK (id = 1)
+        );
+        INSERT INTO company_settings (id, name) VALUES (1, 'Auto Detailing') ON CONFLICT (id) DO NOTHING;
+
+        CREATE TABLE IF NOT EXISTS system_logs (
+          id SERIAL PRIMARY KEY,
+          user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+          user_name VARCHAR(255),
+          action VARCHAR(100) NOT NULL,
+          entity_type VARCHAR(50),
+          entity_id INTEGER,
+          details JSONB DEFAULT '{}',
+          ip_address VARCHAR(45),
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_system_logs_action ON system_logs(action);
+        CREATE INDEX IF NOT EXISTS idx_system_logs_user_id ON system_logs(user_id);
+        CREATE INDEX IF NOT EXISTS idx_system_logs_created_at ON system_logs(created_at DESC);
+        CREATE INDEX IF NOT EXISTS idx_system_logs_entity ON system_logs(entity_type, entity_id);
         CREATE INDEX IF NOT EXISTS idx_orders_client_id ON orders(client_id);
         CREATE INDEX IF NOT EXISTS idx_orders_vehicle_id ON orders(vehicle_id);
         CREATE INDEX IF NOT EXISTS idx_orders_date_from ON orders(date_from);

@@ -1,6 +1,69 @@
 const nodemailer = require('nodemailer');
 const pool = require('../config/db');
 const config = require('../config/appConfig');
+const { getCompany } = require('../utils/companySettings');
+
+const wrapEmailHtml = (body, company) => {
+  const companyName = company.name || 'Auto Detailing';
+  const footerLines = [
+    company.address,
+    company.phone ? `Tel: ${company.phone}` : null,
+    company.email_contact ? `E-mail: ${company.email_contact}` : null,
+    company.website ? `<a href="${company.website}" style="color:#6366f1;text-decoration:none;">${company.website}</a>` : null,
+    company.nip ? `NIP: ${company.nip}` : null,
+  ].filter(Boolean).join(' &nbsp;·&nbsp; ');
+
+  // Konwertuj zwykły tekst na akapity HTML jeśli body nie zawiera tagów HTML
+  const isPlainText = !/<[a-z][\s\S]*>/i.test(body);
+  const contentHtml = isPlainText
+    ? body.split('\n').map(line => line.trim() ? `<p style="margin:0 0 12px 0;">${line}</p>` : '').join('')
+    : body;
+
+  return `<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${companyName}</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;">
+
+          <!-- NAGŁÓWEK -->
+          <tr>
+            <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:12px 12px 0 0;padding:32px 40px;text-align:center;">
+              <div style="display:inline-block;width:48px;height:48px;background:rgba(255,255,255,0.2);border-radius:12px;line-height:48px;font-size:24px;margin-bottom:12px;">✦</div>
+              <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:-0.3px;">${companyName}</h1>
+            </td>
+          </tr>
+
+          <!-- TREŚĆ -->
+          <tr>
+            <td style="background:#ffffff;padding:40px 40px 32px 40px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+              <div style="color:#1e293b;font-size:15px;line-height:1.7;">
+                ${contentHtml}
+              </div>
+            </td>
+          </tr>
+
+          <!-- STOPKA -->
+          <tr>
+            <td style="background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;padding:20px 40px;text-align:center;">
+              <p style="margin:0 0 6px 0;color:#64748b;font-size:12px;line-height:1.6;">${footerLines}</p>
+              <p style="margin:0;color:#94a3b8;font-size:11px;">Ta wiadomość została wygenerowana automatycznie. Prosimy na nią nie odpowiadać.</p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+};
 
 const transporter = nodemailer.createTransport({
   service: config.email.service,
@@ -60,6 +123,8 @@ const sendOrderEmail = async (order, type) => {
   const alreadySent = await wasEmailSent(order.id, type);
   if (alreadySent) return { skipped: 'już wysłano' };
 
+  const company = await getCompany();
+
   const variables = {
     client_name: order.client_name?.split(' ')[0] || order.client_name,
     vehicle_brand: order.vehicle_brand,
@@ -72,13 +137,20 @@ const sendOrderEmail = async (order, type) => {
     date_to: order.date_to
       ? new Date(order.date_to).toLocaleDateString('pl-PL')
       : '',
+    company_name:    company.name,
+    company_address: company.address,
+    company_phone:   company.phone,
+    company_email:   company.email_contact,
+    company_nip:     company.nip,
+    company_website: company.website,
   };
 
   const subject = renderTemplate(template.subject, variables);
   const body = renderTemplate(template.body, variables);
+  const html = wrapEmailHtml(body, company);
 
   try {
-    await sendEmail({ to: order.client_email, subject, html: body });
+    await sendEmail({ to: order.client_email, subject, html });
     await logEmail({
       orderId: order.id,
       clientId: order.client_id,
@@ -102,4 +174,4 @@ const sendOrderEmail = async (order, type) => {
   }
 };
 
-module.exports = { sendOrderEmail, getTemplate, wasEmailSent, sendEmail, logEmail, renderTemplate };
+module.exports = { sendOrderEmail, getTemplate, wasEmailSent, sendEmail, logEmail, renderTemplate, wrapEmailHtml };

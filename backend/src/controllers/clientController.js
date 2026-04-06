@@ -1,4 +1,6 @@
 const clientModel = require('../models/clientModel');
+const { logAction } = require('../utils/systemLog');
+const getIp = (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || null;
 
 const getClients = async (req, res) => {
   try {
@@ -31,6 +33,7 @@ const createClient = async (req, res) => {
       return res.status(400).json({ error: 'Imię i nazwisko jest wymagane' });
     }
     const client = await clientModel.createClient({ full_name, phone, email, nip, status });
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'client_created', entityType: 'client', entityId: client.id, details: { full_name, phone, email }, ipAddress: getIp(req) });
     res.status(201).json(client);
   } catch (err) {
     console.error(err);
@@ -46,6 +49,7 @@ const updateClient = async (req, res) => {
     }
     const client = await clientModel.updateClient(req.params.id, { full_name, phone, email, nip, status });
     if (!client) return res.status(404).json({ error: 'Klient nie znaleziony' });
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'client_updated', entityType: 'client', entityId: parseInt(req.params.id), details: { full_name, phone, email }, ipAddress: getIp(req) });
     res.json(client);
   } catch (err) {
     console.error(err);
@@ -64,6 +68,7 @@ const deleteClient = async (req, res) => {
       return res.status(409).json({ error: `Nie można usunąć klienta — ma ${orderCount} ${orderCount === 1 ? 'zlecenie' : orderCount < 5 ? 'zlecenia' : 'zleceń'}. Usuń najpierw zlecenia.`, orderCount });
     }
     await clientModel.deleteClient(req.params.id);
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'client_deleted', entityType: 'client', entityId: parseInt(req.params.id), details: { full_name: client.full_name }, ipAddress: getIp(req) });
     res.json({ message: 'Klient usunięty' });
   } catch (err) {
     console.error(err);

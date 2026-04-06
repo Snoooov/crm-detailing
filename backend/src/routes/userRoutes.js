@@ -3,6 +3,8 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const { auth, adminOnly, managerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/db');
+const { logAction } = require('../utils/systemLog');
+const getIp = (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || null;
 
 // Lista użytkowników
 router.get('/', auth, managerOrAdmin, async (req, res) => {
@@ -43,6 +45,7 @@ router.post('/', auth, adminOnly, async (req, res) => {
       [email, password_hash, name, role || 'employee']
     );
 
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'user_created', entityType: 'user', entityId: result.rows[0].id, details: { name, email, role: role || 'employee' }, ipAddress: getIp(req) });
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -79,6 +82,7 @@ router.put('/:id', auth, adminOnly, async (req, res) => {
       'SELECT id, email, name, role, totp_enabled, created_at FROM users WHERE id = $1',
       [req.params.id]
     );
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'user_updated', entityType: 'user', entityId: parseInt(req.params.id), details: { name, email, role, password_changed: !!password }, ipAddress: getIp(req) });
     res.json(result.rows[0]);
   } catch (err) {
     console.error(err);
@@ -92,7 +96,9 @@ router.delete('/:id', auth, adminOnly, async (req, res) => {
     if (parseInt(req.params.id) === req.user.id) {
       return res.status(400).json({ error: 'Nie możesz usunąć własnego konta' });
     }
+    const targetUser = await pool.query('SELECT id, name, email FROM users WHERE id = $1', [req.params.id]);
     await pool.query('DELETE FROM users WHERE id = $1', [req.params.id]);
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'user_deleted', entityType: 'user', entityId: parseInt(req.params.id), details: { name: targetUser.rows[0]?.name, email: targetUser.rows[0]?.email }, ipAddress: getIp(req) });
     res.json({ message: 'Użytkownik usunięty' });
   } catch (err) {
     console.error(err);

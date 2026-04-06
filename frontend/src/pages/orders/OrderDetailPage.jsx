@@ -89,6 +89,9 @@ const OrderDetailPage = () => {
     if (form.date_from && form.date_to && form.date_to < form.date_from) {
       return setError('Data zakończenia nie może być wcześniejsza niż data rozpoczęcia');
     }
+    if (form.status !== 'inspection' && (form.price === '' || form.price === null || form.price === undefined)) {
+      return setError('Podaj cenę zlecenia — wymagana dla wybranego statusu');
+    }
     if (form.price !== '' && form.price !== null && (isNaN(parseFloat(form.price)) || parseFloat(form.price) < 0)) {
       return setError('Cena nie może być ujemna');
     }

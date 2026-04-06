@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const { auth, managerOrAdmin } = require('../middleware/auth');
 const pool = require('../config/db');
-const { sendEmail, logEmail, renderTemplate } = require('../services/emailService');
+const { sendEmail, logEmail, renderTemplate, wrapEmailHtml } = require('../services/emailService');
+const { getCompany } = require('../utils/companySettings');
 
 // Podgląd klientów pasujących do filtrów
 router.get('/preview', auth, managerOrAdmin, async (req, res) => {
@@ -57,6 +58,7 @@ router.post('/send', auth, managerOrAdmin, async (req, res) => {
     );
 
     const results = { sent: 0, failed: 0, skipped: 0 };
+    const company = await getCompany();
 
     for (const client of clientsResult.rows) {
       const firstName = client.full_name?.split(' ')[0] || client.full_name;
@@ -65,7 +67,7 @@ router.post('/send', auth, managerOrAdmin, async (req, res) => {
       const renderedBody = renderTemplate(body, vars);
 
       try {
-        await sendEmail({ to: client.email, subject: renderedSubject, html: renderedBody });
+        await sendEmail({ to: client.email, subject: renderedSubject, html: wrapEmailHtml(renderedBody, company) });
         await logEmail({
           orderId: null,
           clientId: client.id,

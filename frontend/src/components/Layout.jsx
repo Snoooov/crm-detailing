@@ -17,6 +17,7 @@ const ADMIN_ITEMS = [
   { to: '/emails',   label: 'Maile',          icon: '◫' },
   { to: '/services', label: 'Katalog usług',  icon: '◧' },
   { to: '/users',    label: 'Użytkownicy',    icon: '◑', adminOnly: true },
+  { to: '/logs',     label: 'Logi systemu',   icon: '◈', adminOnly: true },
 ];
 
 const NavItem = ({ to, label, icon, colors }) => (

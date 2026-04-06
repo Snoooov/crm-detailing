@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/controllers/orderController.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/routes/settingsRoutes.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/routes/notificationRoutes.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/config/db.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/utils/companySettings.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/services/pdfService.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/routes/emailRoutes.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/routes/icalRoutes.js)",
+      "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/routes/twoFactorRoutes.js)",
+      "Bash(node update_email_templates.js)",
+      "Bash(node insert_date_changed_template.js)"
+    ]
+  }
+}

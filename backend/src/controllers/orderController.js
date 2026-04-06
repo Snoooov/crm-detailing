@@ -2,6 +2,9 @@ const orderModel = require('../models/orderModel');
 const vehicleModel = require('../models/vehicleModel');
 const { sendOrderEmail } = require('../services/emailService');
 const pool = require('../config/db');
+const { logAction } = require('../utils/systemLog');
+
+const getIp = (req) => req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket?.remoteAddress || null;
 
 const VALID_STATUSES = ['inspection', 'planned', 'in_progress', 'done', 'released', 'cancelled'];
 
@@ -72,7 +75,11 @@ const createOrder = async (req, res) => {
       return res.status(400).json({ error: 'Data do nie może być wcześniejsza niż data od' });
     }
 
-    if (price !== undefined && price !== '' && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
+    const effectiveStatus = status || 'inspection';
+    if (effectiveStatus !== 'inspection' && (price === '' || price === null || price === undefined)) {
+      return res.status(400).json({ error: 'Cena zlecenia jest wymagana dla wybranego statusu' });
+    }
+    if (price !== undefined && price !== '' && price !== null && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
       return res.status(400).json({ error: 'Nieprawidłowa cena' });
     }
 
@@ -91,6 +98,8 @@ const createOrder = async (req, res) => {
     }
 
     const order = await orderModel.createOrder({ client_id, vehicle_id, service_catalog_id, service_name, service_description, date_from, date_to, price, status, notes, is_paid, paid_cash, paid_card, invoice_number });
+
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'order_created', entityType: 'order', entityId: order.id, details: { service_name, status, price, client_id, vehicle_id }, ipAddress: getIp(req) });
 
     if (req.user.role !== 'admin') {
       // pool imported at top
@@ -130,7 +139,10 @@ const updateOrder = async (req, res) => {
       return res.status(400).json({ error: 'Data do nie może być wcześniejsza niż data od' });
     }
 
-    if (price !== undefined && price !== '' && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
+    if (status !== 'inspection' && (price === '' || price === null || price === undefined)) {
+      return res.status(400).json({ error: 'Cena zlecenia jest wymagana dla wybranego statusu' });
+    }
+    if (price !== undefined && price !== '' && price !== null && (isNaN(parseFloat(price)) || parseFloat(price) < 0)) {
       return res.status(400).json({ error: 'Nieprawidłowa cena' });
     }
 
@@ -161,6 +173,28 @@ const updateOrder = async (req, res) => {
     const changes = diffChanges(oldOrder, { ...req.body, is_paid: is_paid || false, paid_cash: paid_cash || 0, paid_card: paid_card || 0 });
     await orderModel.logHistory(req.params.id, req.user.id, req.user.name, changes);
 
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'order_updated', entityType: 'order', entityId: parseInt(req.params.id), details: { changes, service_name }, ipAddress: getIp(req) });
+
+    // Mail przy zmianie terminu (tylko gdy data_from się zmieniła i klient ma email)
+    const oldDate = oldOrder.date_from ? new Date(oldOrder.date_from).toISOString().split('T')[0] : null;
+    const newDate = date_from ? new Date(date_from).toISOString().split('T')[0] : null;
+    if (oldDate && newDate && oldDate !== newDate) {
+      try {
+        const orderDetails = await pool.query(
+          `SELECT o.*, c.full_name as client_name, c.email as client_email,
+                  v.brand as vehicle_brand, v.model as vehicle_model, v.plate_number
+           FROM orders o JOIN clients c ON o.client_id = c.id JOIN vehicles v ON o.vehicle_id = v.id
+           WHERE o.id = $1`,
+          [req.params.id]
+        );
+        if (orderDetails.rows[0]?.client_email) {
+          await sendOrderEmail(orderDetails.rows[0], 'date_changed');
+        }
+      } catch (emailErr) {
+        console.error('Błąd wysyłania maila o zmianie terminu:', emailErr);
+      }
+    }
+
     res.json(order);
   } catch (err) {
     console.error(err);
@@ -189,6 +223,8 @@ const updateStatus = async (req, res) => {
     await orderModel.logHistory(req.params.id, req.user.id, req.user.name, [
       { field: 'Status', from: oldOrder.status, to: status }
     ]);
+
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'order_status_changed', entityType: 'order', entityId: parseInt(req.params.id), details: { from: oldOrder.status, to: status }, ipAddress: getIp(req) });
 
     if (status === 'done') {
       try {
@@ -223,6 +259,7 @@ const deleteOrder = async (req, res) => {
     const order = await orderModel.getOrderById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Zlecenie nie znalezione' });
     await orderModel.deleteOrder(req.params.id);
+    await logAction({ userId: req.user.id, userName: req.user.name, action: 'order_deleted', entityType: 'order', entityId: parseInt(req.params.id), details: { service_name: order.service_name, status: order.status, client_name: order.client_name }, ipAddress: getIp(req) });
     res.json({ message: 'Zlecenie usunięte' });
   } catch (err) {
     console.error(err);

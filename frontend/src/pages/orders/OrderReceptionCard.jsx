@@ -7,11 +7,16 @@ const OrderReceptionCard = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  const [company, setCompany] = useState({ name: 'Auto Detailing', address: '', phone: '', email_contact: '' });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.get(`/orders/${id}`).then(res => {
-      setOrder(res.data);
+    Promise.all([
+      api.get(`/orders/${id}`),
+      api.get('/settings/company'),
+    ]).then(([orderRes, companyRes]) => {
+      setOrder(orderRes.data);
+      setCompany(companyRes.data);
       setLoading(false);
     });
   }, [id]);
@@ -160,8 +165,10 @@ const OrderReceptionCard = () => {
         {/* Nagłówek */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
           <div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>Auto Detailing</div>
-            <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>Karta przyjęcia pojazdu</div>
+            <div style={{ fontSize: 20, fontWeight: 700 }}>{company.name}</div>
+            <div style={{ fontSize: 12, color: '#555', marginTop: 2 }}>
+              {[company.address, company.phone, company.email_contact].filter(Boolean).join(' · ') || 'Karta przyjęcia pojazdu'}
+            </div>
           </div>
           <div style={{ textAlign: 'right', fontSize: 12 }}>
             <div style={{ fontSize: 16, fontWeight: 700 }}>Nr zlecenia: #{order.id}</div>

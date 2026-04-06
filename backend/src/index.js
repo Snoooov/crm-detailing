@@ -23,6 +23,8 @@ const serviceRoutes = require('./routes/serviceRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
 const icalRoutes = require('./routes/icalRoutes');
+const logsRoutes = require('./routes/logsRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
 
 const app = express();
 
@@ -65,6 +67,8 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/ical', icalRoutes);
+app.use('/api/logs', logsRoutes);
+app.use('/api/settings', settingsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serwer działa' });
