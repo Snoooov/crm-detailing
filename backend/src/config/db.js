@@ -18,6 +18,106 @@ pool.connect()
   .then(async (client) => {
     console.log('Połączono z bazą danych PostgreSQL');
     try {
+      // Tworzenie tabel bazowych (jeśli nie istnieją)
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS users (
+          id SERIAL PRIMARY KEY,
+          email VARCHAR(255) UNIQUE NOT NULL,
+          password_hash VARCHAR(255) NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          role VARCHAR(20) DEFAULT 'employee',
+          notification_prefs JSONB DEFAULT '{}',
+          totp_secret VARCHAR(255),
+          totp_enabled BOOLEAN DEFAULT FALSE,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS clients (
+          id SERIAL PRIMARY KEY,
+          full_name VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          email VARCHAR(255),
+          nip VARCHAR(20),
+          status VARCHAR(20) DEFAULT 'normal',
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS vehicles (
+          id SERIAL PRIMARY KEY,
+          client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+          brand VARCHAR(100),
+          model VARCHAR(100),
+          year INTEGER,
+          color VARCHAR(50),
+          vin VARCHAR(50),
+          plate_number VARCHAR(30),
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS orders (
+          id SERIAL PRIMARY KEY,
+          client_id INTEGER REFERENCES clients(id) ON DELETE CASCADE,
+          vehicle_id INTEGER REFERENCES vehicles(id) ON DELETE CASCADE,
+          service_catalog_id INTEGER,
+          service_name VARCHAR(255) NOT NULL,
+          service_description TEXT,
+          date_from TIMESTAMP,
+          date_to TIMESTAMP,
+          price DECIMAL(10,2),
+          status VARCHAR(50) DEFAULT 'inspection',
+          notes TEXT,
+          is_paid BOOLEAN DEFAULT FALSE,
+          paid_cash DECIMAL(10,2) DEFAULT 0,
+          paid_card DECIMAL(10,2) DEFAULT 0,
+          invoice_number VARCHAR(100),
+          damage_map JSONB DEFAULT '[]',
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS order_assignments (
+          id SERIAL PRIMARY KEY,
+          order_id INTEGER REFERENCES orders(id) ON DELETE CASCADE,
+          user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          UNIQUE(order_id, user_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS notes (
+          id SERIAL PRIMARY KEY,
+          entity_type VARCHAR(50),
+          entity_id INTEGER,
+          content TEXT NOT NULL,
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS email_logs (
+          id SERIAL PRIMARY KEY,
+          order_id INTEGER REFERENCES orders(id) ON DELETE SET NULL,
+          client_id INTEGER REFERENCES clients(id) ON DELETE SET NULL,
+          email_type VARCHAR(50),
+          recipient_email VARCHAR(255),
+          subject VARCHAR(255),
+          status VARCHAR(20) DEFAULT 'sent',
+          error_message TEXT,
+          sent_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE IF NOT EXISTS email_templates (
+          id SERIAL PRIMARY KEY,
+          type VARCHAR(50) UNIQUE NOT NULL,
+          subject VARCHAR(255),
+          body TEXT,
+          enabled BOOLEAN DEFAULT TRUE,
+          delay_days INTEGER DEFAULT 0,
+          updated_at TIMESTAMP DEFAULT NOW()
+        );
+
+        INSERT INTO email_templates (type, subject, body, enabled, delay_days) VALUES
+          ('order_confirmation', 'Potwierdzenie przyjęcia zlecenia', '', TRUE, 0),
+          ('order_ready', 'Twój pojazd jest gotowy do odbioru', '', TRUE, 0),
+          ('review_request', 'Poproś o opinię', '', TRUE, 1)
+        ON CONFLICT (type) DO NOTHING;
+      `);
+
       await client.query(`
         ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'employee';
 
