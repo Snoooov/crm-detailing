@@ -13,6 +13,7 @@ const NAV_ITEMS = [
 ];
 
 const ADMIN_ITEMS = [
+  { to: '/inquiries', label: 'Zgłoszenia www', icon: '◉' },
   { to: '/reports',  label: 'Raporty',        icon: '◻' },
   { to: '/emails',   label: 'Maile',          icon: '◫' },
   { to: '/services', label: 'Katalog usług',  icon: '◧' },

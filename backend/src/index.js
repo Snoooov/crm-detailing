@@ -25,12 +25,25 @@ const campaignRoutes = require('./routes/campaignRoutes');
 const icalRoutes = require('./routes/icalRoutes');
 const logsRoutes = require('./routes/logsRoutes');
 const settingsRoutes = require('./routes/settingsRoutes');
+const inquiryRoutes = require('./routes/inquiryRoutes');
 
 const app = express();
 
 app.use(helmet());
+
+const allowedOrigins = [
+  config.server.frontendUrl,
+  process.env.WEBSITE_URL || 'https://prestiq.pl',
+  'https://www.prestiq.pl',
+].filter(Boolean);
+
 app.use(cors({
-  origin: config.server.frontendUrl,
+  origin: (origin, callback) => {
+    // Brak origina (curl, Postman, server-side) — przepuść
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(new Error('CORS: niedozwolony origin'));
+  },
   credentials: true,
 }));
 app.use(express.json({ limit: config.server.bodyLimit }));
@@ -69,6 +82,8 @@ app.use('/api/campaigns', campaignRoutes);
 app.use('/api/ical', icalRoutes);
 app.use('/api/logs', logsRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/inquiries', inquiryRoutes);
+app.use('/api/public', inquiryRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Serwer działa' });

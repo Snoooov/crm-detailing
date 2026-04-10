@@ -251,6 +251,21 @@ pool.connect()
         -- Usuń zlecenia bez żadnej nazwy usługi (nie pasują do żadnej usługi)
         DELETE FROM orders WHERE service_name IS NULL OR TRIM(service_name) = '';
 
+        -- Tabela zgłoszeń ze strony www
+        CREATE TABLE IF NOT EXISTS website_inquiries (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          service VARCHAR(255),
+          message TEXT,
+          ip_address VARCHAR(45),
+          status VARCHAR(30) DEFAULT 'new',
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_inquiries_status ON website_inquiries(status);
+        CREATE INDEX IF NOT EXISTS idx_inquiries_created_at ON website_inquiries(created_at DESC);
+
         -- NULL wartości finansowe
         UPDATE orders SET price     = 0 WHERE price     IS NULL;
         UPDATE orders SET paid_cash = 0 WHERE paid_cash IS NULL;

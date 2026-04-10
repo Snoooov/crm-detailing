@@ -7,7 +7,7 @@
   <meta name="description" content="Prestiq Car Spa — profesjonalny detailing samochodowy. Pielęgnacja, korekta lakieru, powłoki ceramiczne, pranie tapicerki." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -15,13 +15,15 @@
   <!-- NAV -->
   <nav id="navbar">
     <div class="nav-inner">
-      <a href="#hero" class="logo">PRESTIQ <span>CAR SPA</span></a>
-      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <a href="#hero" class="logo">PRESTIQ<span>.</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
       <ul class="nav-links" id="navLinks">
         <li><a href="#services">Usługi</a></li>
         <li><a href="#about">O nas</a></li>
-        <li><a href="#gallery">Galeria</a></li>
-        <li><a href="#contact">Kontakt</a></li>
+        <li><a href="#gallery">Realizacje</a></li>
+        <li><a href="#testimonials">Opinie</a></li>
         <li><a href="#contact" class="nav-cta">Umów wizytę</a></li>
       </ul>
     </div>
@@ -29,158 +31,161 @@
 
   <!-- HERO -->
   <section id="hero">
-    <div class="hero-bg">
+    <div class="hero-media">
       <div class="hero-overlay"></div>
-      <img class="hero-img" src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1920&q=85" alt="Luksusowy samochód — detailing" />
+      <!-- video tło -->
+      <iframe
+        class="hero-video"
+        src="https://www.youtube.com/embed/a6VlXDdRUig?autoplay=1&mute=1&loop=1&playlist=a6VlXDdRUig&controls=0&disablekb=1&fs=0&modestbranding=1&showinfo=0"
+        allow="autoplay; encrypted-media"
+        frameborder="0"
+        aria-hidden="true"
+      ></iframe>
+      <img
+        class="hero-fallback"
+        src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=85"
+        alt=""
+      />
     </div>
+
     <div class="hero-content">
-      <p class="hero-tagline">Profesjonalna pielęgnacja pojazdu</p>
-      <h1 class="hero-title">Twój samochód zasługuje<br/>na <span>doskonałość</span></h1>
-      <p class="hero-sub">Korekta lakieru · Powłoki ceramiczne · Pranie tapicerki · Detailing kompleksowy</p>
-      <div class="hero-btns">
-        <a href="#contact" class="btn btn-purple">Umów wizytę</a>
-        <a href="#services" class="btn btn-outline">Nasze usługi</a>
+      <div class="hero-eyebrow">
+        <span class="eyebrow-dot"></span>
+        Profesjonalny detailing samochodowy
+      </div>
+      <h1 class="hero-title">
+        Twój samochód<br/>zasługuje na<br/><span class="grad">doskonałość</span>
+      </h1>
+      <p class="hero-sub">
+        Korekta lakieru &nbsp;·&nbsp; Powłoki ceramiczne &nbsp;·&nbsp; PPF &nbsp;·&nbsp; Detailing wnętrza
+      </p>
+      <div class="hero-actions">
+        <a href="#contact" class="btn btn-primary">Umów wizytę</a>
+        <a href="#services" class="btn btn-ghost">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M10 8l4 4-4 4"/></svg>
+          Nasze usługi
+        </a>
+      </div>
+      <div class="hero-proof">
+        <div class="proof-item"><strong>500+</strong><span>Klientów</span></div>
+        <div class="proof-sep"></div>
+        <div class="proof-item"><strong>8 lat</strong><span>Doświadczenia</span></div>
+        <div class="proof-sep"></div>
+        <div class="proof-item"><strong>100%</strong><span>Gwarancja</span></div>
       </div>
     </div>
-    <a href="#services" class="hero-scroll">
+
+    <a href="#services" class="hero-scroll-hint" aria-label="Przewiń w dół">
       <span></span>
     </a>
   </section>
 
-  <!-- STATS -->
-  <section id="stats">
-    <div class="container">
-      <div class="stats-grid">
-        <div class="stat-item">
-          <span class="stat-num" data-target="500">0</span><span class="stat-suffix">+</span>
-          <p>Zadowolonych klientów</p>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num" data-target="8">0</span><span class="stat-suffix"></span>
-          <p>Lat doświadczenia</p>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num" data-target="1200">0</span><span class="stat-suffix">+</span>
-          <p>Wykonanych zleceń</p>
-        </div>
-        <div class="stat-item">
-          <span class="stat-num" data-target="100">0</span><span class="stat-suffix">%</span>
-          <p>Gwarancja jakości</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- BRANDS MARQUEE -->
-  <div class="brands-bar">
-    <div class="brands-track">
-      <span>Gyeon</span>
-      <span class="brands-dot">·</span>
-      <span>CarPro</span>
-      <span class="brands-dot">·</span>
-      <span>Gtechniq</span>
-      <span class="brands-dot">·</span>
-      <span>Koch-Chemie</span>
-      <span class="brands-dot">·</span>
-      <span>RUPES</span>
-      <span class="brands-dot">·</span>
-      <span>Meguiar's</span>
-      <span class="brands-dot">·</span>
-      <span>3M</span>
-      <span class="brands-dot">·</span>
-      <span>Sonax</span>
-      <span class="brands-dot">·</span>
-      <span>Gyeon</span>
-      <span class="brands-dot">·</span>
-      <span>CarPro</span>
-      <span class="brands-dot">·</span>
-      <span>Gtechniq</span>
-      <span class="brands-dot">·</span>
-      <span>Koch-Chemie</span>
-      <span class="brands-dot">·</span>
-      <span>RUPES</span>
-      <span class="brands-dot">·</span>
-      <span>Meguiar's</span>
-      <span class="brands-dot">·</span>
-      <span>3M</span>
-      <span class="brands-dot">·</span>
-      <span>Sonax</span>
+  <!-- TICKER -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <span>Gyeon</span><span class="sep">—</span>
+      <span>CarPro</span><span class="sep">—</span>
+      <span>Gtechniq</span><span class="sep">—</span>
+      <span>Koch-Chemie</span><span class="sep">—</span>
+      <span>RUPES</span><span class="sep">—</span>
+      <span>Meguiar's</span><span class="sep">—</span>
+      <span>3M</span><span class="sep">—</span>
+      <span>Sonax</span><span class="sep">—</span>
+      <span>Gyeon</span><span class="sep">—</span>
+      <span>CarPro</span><span class="sep">—</span>
+      <span>Gtechniq</span><span class="sep">—</span>
+      <span>Koch-Chemie</span><span class="sep">—</span>
+      <span>RUPES</span><span class="sep">—</span>
+      <span>Meguiar's</span><span class="sep">—</span>
+      <span>3M</span><span class="sep">—</span>
+      <span>Sonax</span><span class="sep">—</span>
     </div>
   </div>
 
   <!-- SERVICES -->
   <section id="services">
     <div class="container">
-      <div class="section-header">
-        <p class="section-label">Co oferujemy</p>
-        <h2>Nasze usługi</h2>
-        <p class="section-desc">Każde zlecenie traktujemy indywidualnie — dobieramy technologie i produkty najwyższej klasy.</p>
+      <div class="section-head">
+        <p class="label">Co oferujemy</p>
+        <h2>Usługi premium</h2>
+        <p class="desc">Każde zlecenie traktujemy indywidualnie. Dobieramy technologie i produkty najwyższej klasy.</p>
       </div>
+
       <div class="services-grid">
-        <div class="service-card">
-          <div class="service-icon">&#10022;</div>
+
+        <div class="svc-card">
+          <div class="svc-num">01</div>
           <h3>Detailing zewnętrzny</h3>
           <p>Mycie, dekontaminacja, korekta lakieru maszynowa. Przywracamy połysk i głębię koloru.</p>
           <ul>
-            <li>Mycie dwuwiaderko</li>
+            <li>Mycie bezpieczne dwuwiaderko</li>
             <li>Usuwanie smoły i żywicy</li>
             <li>Polerowanie maszynowe</li>
           </ul>
+          <a href="#contact" class="svc-link">Zapytaj o wycenę →</a>
         </div>
-        <div class="service-card featured">
-          <div class="service-badge">Bestseller</div>
-          <div class="service-icon">&#9670;</div>
+
+        <div class="svc-card svc-featured">
+          <div class="svc-badge">Bestseller</div>
+          <div class="svc-num">02</div>
           <h3>Powłoka ceramiczna</h3>
-          <p>Trwała ochrona lakieru na lata. Hydrofobowość, odporność na zarysowania i UV.</p>
+          <p>Trwała ochrona lakieru na lata. Hydrofobowość, odporność na zarysowania i promieniowanie UV.</p>
           <ul>
             <li>Gwarancja do 5 lat</li>
-            <li>Efekt lotus</li>
+            <li>Efekt lotosu — samoczyszczenie</li>
             <li>Certyfikowane produkty</li>
           </ul>
+          <a href="#contact" class="svc-link">Zapytaj o wycenę →</a>
         </div>
-        <div class="service-card">
-          <div class="service-icon">&#10023;</div>
+
+        <div class="svc-card">
+          <div class="svc-num">03</div>
           <h3>Detailing wnętrza</h3>
           <p>Kompleksowe czyszczenie i pielęgnacja każdego elementu kabiny pasażerskiej.</p>
           <ul>
-            <li>Pranie tapicerki</li>
-            <li>Czyszczenie skóry</li>
-            <li>Ozonowanie</li>
+            <li>Pranie tapicerki i dywanów</li>
+            <li>Czyszczenie i konserwacja skóry</li>
+            <li>Ozonowanie kabiny</li>
           </ul>
+          <a href="#contact" class="svc-link">Zapytaj o wycenę →</a>
         </div>
-        <div class="service-card">
-          <div class="service-icon">&#9762;</div>
+
+        <div class="svc-card">
+          <div class="svc-num">04</div>
           <h3>Folia ochronna PPF</h3>
           <p>Niewidoczna ochrona lakieru przed odpryskami kamieni i zarysowaniami.</p>
           <ul>
-            <li>Samonaprawiająca się</li>
-            <li>Przód, maska, progi</li>
-            <li>Cały pojazd</li>
+            <li>Samonaprawiająca się folia</li>
+            <li>Przód, maska, progi, lusterka</li>
+            <li>Oklejanie całego pojazdu</li>
           </ul>
+          <a href="#contact" class="svc-link">Zapytaj o wycenę →</a>
         </div>
-        <div class="service-card">
-          <div class="service-icon">&#9672;</div>
+
+        <div class="svc-card">
+          <div class="svc-num">05</div>
           <h3>Korekta lakieru</h3>
-          <p>Usuwamy hologramy, rysy i pajęczynki. Jednofazowa lub dwufazowa korekta.</p>
+          <p>Usuwamy hologramy, rysy i pajęczynki. Jednofazowa lub dwufazowa korekta maszyny.</p>
           <ul>
-            <li>Ocena stanu lakieru</li>
-            <li>Pomiar grubości</li>
+            <li>Ocena stanu + pomiar grubości</li>
             <li>Polerowanie wielostopniowe</li>
+            <li>Ochrona po korekcie</li>
           </ul>
+          <a href="#contact" class="svc-link">Zapytaj o wycenę →</a>
         </div>
-        <div class="service-card">
-          <div class="service-icon">&#10038;</div>
+
+        <div class="svc-card">
+          <div class="svc-num">06</div>
           <h3>Pakiet kompleksowy</h3>
           <p>Pełen detailing zewnętrzny i wewnętrzny w jednym. Idealne przygotowanie do sezonu.</p>
           <ul>
-            <li>Zewnątrz + wnętrze</li>
-            <li>Korekta lakieru</li>
-            <li>Powłoka ochronna</li>
+            <li>Zewnątrz + wnętrze full</li>
+            <li>Korekta lakieru jednofazowa</li>
+            <li>Powłoka ochronna w cenie</li>
           </ul>
+          <a href="#contact" class="svc-link">Zapytaj o wycenę →</a>
         </div>
-      </div>
-      <div class="services-cta">
-        <a href="#contact" class="btn btn-purple">Zapytaj o wycenę</a>
+
       </div>
     </div>
   </section>
@@ -188,40 +193,57 @@
   <!-- ABOUT -->
   <section id="about">
     <div class="container">
-      <div class="about-grid">
-        <div class="about-images">
-          <img class="about-img about-img-main" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Detailer przy pracy" />
-          <img class="about-img about-img-secondary" src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=400&q=80" alt="Efekt detailingu" />
-          <div class="about-badge-float">
-            <span class="about-badge-num">8</span>
-            <span class="about-badge-txt">lat<br/>doświadczenia</span>
+      <div class="about-wrap">
+
+        <div class="about-visual">
+          <div class="about-img-main">
+            <img src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=700&q=85" alt="Detailer przy pracy" />
+          </div>
+          <div class="about-img-accent">
+            <img src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=450&q=85" alt="Efekt detailingu" />
+          </div>
+          <div class="about-chip">
+            <span class="chip-num">8</span>
+            <span class="chip-label">lat<br/>doświadczenia</span>
           </div>
         </div>
-        <div class="about-content">
-          <p class="section-label">Kim jesteśmy</p>
+
+        <div class="about-body">
+          <p class="label">Kim jesteśmy</p>
           <h2>Pasja do<br/>doskonałości</h2>
-          <p class="about-lead">Prestiq Car Spa to studio detailingu z pasją do samochodów i obsesją na punkcie jakości. Każde zlecenie traktujemy jak własne auto.</p>
-          <p class="about-text">Używamy wyłącznie profesjonalnych produktów renomowanych marek. Nasz zespół regularnie poszerza wiedzę na szkoleniach branżowych w Polsce i za granicą.</p>
-          <div class="about-features">
-            <div class="about-feature">
-              <span class="feature-dot"></span>
+          <p class="about-lead">Prestiq Car Spa to studio detailingu prowadzone przez pasjonatów motoryzacji. Każde auto traktujemy jak własne.</p>
+          <p class="about-text">Używamy wyłącznie profesjonalnych produktów renomowanych marek. Nasz zespół regularnie szkoli się na kursach branżowych w Polsce i za granicą.</p>
+
+          <div class="about-list">
+            <div class="about-item">
+              <div class="about-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
               <span>Certyfikowane produkty i technologie</span>
             </div>
-            <div class="about-feature">
-              <span class="feature-dot"></span>
+            <div class="about-item">
+              <div class="about-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
               <span>Indywidualne podejście do każdego pojazdu</span>
             </div>
-            <div class="about-feature">
-              <span class="feature-dot"></span>
+            <div class="about-item">
+              <div class="about-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
               <span>Transparentna wycena bez ukrytych kosztów</span>
             </div>
-            <div class="about-feature">
-              <span class="feature-dot"></span>
-              <span>Gwarancja na wykonane usługi</span>
+            <div class="about-item">
+              <div class="about-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              </div>
+              <span>Pisemna gwarancja na wykonane usługi</span>
             </div>
           </div>
-          <a href="#contact" class="btn btn-purple">Poznaj nas bliżej</a>
+
+          <a href="#contact" class="btn btn-primary">Umów konsultację</a>
         </div>
+
       </div>
     </div>
   </section>
@@ -229,31 +251,31 @@
   <!-- GALLERY -->
   <section id="gallery">
     <div class="container">
-      <div class="section-header">
-        <p class="section-label">Nasze realizacje</p>
+      <div class="section-head center">
+        <p class="label">Nasze realizacje</p>
         <h2>Galeria</h2>
-        <p class="section-desc">Efekty mówią same za siebie.</p>
+        <p class="desc">Efekty mówią same za siebie.</p>
       </div>
       <div class="gallery-grid">
-        <div class="gallery-item gallery-item--wide">
-          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=900&q=85" alt="Detailing - efekt" loading="lazy" />
-          <div class="gallery-overlay"><span>Korekta lakieru</span></div>
+        <div class="g-item g-wide">
+          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1000&q=85" alt="Korekta lakieru" loading="lazy" />
+          <div class="g-overlay"><span>Korekta lakieru</span></div>
         </div>
-        <div class="gallery-item">
-          <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&q=80" alt="Detailing - efekt" loading="lazy" />
-          <div class="gallery-overlay"><span>Detailing zewnętrzny</span></div>
+        <div class="g-item">
+          <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=600&q=80" alt="Detailing zewnętrzny" loading="lazy" />
+          <div class="g-overlay"><span>Detailing zewnętrzny</span></div>
         </div>
-        <div class="gallery-item">
-          <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&q=80" alt="Detailing - efekt" loading="lazy" />
-          <div class="gallery-overlay"><span>Powłoka ceramiczna</span></div>
+        <div class="g-item">
+          <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=600&q=80" alt="Powłoka ceramiczna" loading="lazy" />
+          <div class="g-overlay"><span>Powłoka ceramiczna</span></div>
         </div>
-        <div class="gallery-item">
-          <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=500&q=80" alt="Wnętrze" loading="lazy" />
-          <div class="gallery-overlay"><span>Detailing wnętrza</span></div>
+        <div class="g-item">
+          <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=600&q=80" alt="Detailing wnętrza" loading="lazy" />
+          <div class="g-overlay"><span>Detailing wnętrza</span></div>
         </div>
-        <div class="gallery-item gallery-item--wide">
-          <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=900&q=85" alt="Detailing - efekt" loading="lazy" />
-          <div class="gallery-overlay"><span>Efekt końcowy</span></div>
+        <div class="g-item g-wide">
+          <img src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1000&q=85" alt="Efekt końcowy" loading="lazy" />
+          <div class="g-overlay"><span>Efekt końcowy</span></div>
         </div>
       </div>
     </div>
@@ -262,33 +284,39 @@
   <!-- PROCESS -->
   <section id="process">
     <div class="container">
-      <div class="section-header">
-        <p class="section-label">Jak działamy</p>
+      <div class="section-head center">
+        <p class="label">Jak działamy</p>
         <h2>Proces realizacji</h2>
       </div>
-      <div class="process-steps">
-        <div class="process-step">
-          <div class="step-num">01</div>
+      <div class="process-row">
+        <div class="proc-step">
+          <div class="proc-n">01</div>
           <h3>Kontakt i wycena</h3>
-          <p>Skontaktuj się z nami telefonicznie lub przez formularz. Przygotujemy indywidualną wycenę.</p>
+          <p>Skontaktuj się telefonicznie lub przez formularz. Przygotujemy indywidualną wycenę w ciągu dnia.</p>
         </div>
-        <div class="process-arrow">&#8594;</div>
-        <div class="process-step">
-          <div class="step-num">02</div>
+        <div class="proc-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="proc-step">
+          <div class="proc-n">02</div>
           <h3>Inspekcja pojazdu</h3>
-          <p>Dokładnie oceniamy stan lakieru i wnętrza. Dokumentujemy istniejące uszkodzenia.</p>
+          <p>Dokładnie oceniamy stan lakieru i wnętrza. Fotograficznie dokumentujemy istniejące uszkodzenia.</p>
         </div>
-        <div class="process-arrow">&#8594;</div>
-        <div class="process-step">
-          <div class="step-num">03</div>
+        <div class="proc-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="proc-step">
+          <div class="proc-n">03</div>
           <h3>Realizacja</h3>
-          <p>Wykonujemy usługę z najwyższą starannością, używając profesjonalnych produktów.</p>
+          <p>Wykonujemy usługę z najwyższą starannością używając profesjonalnych produktów premium.</p>
         </div>
-        <div class="process-arrow">&#8594;</div>
-        <div class="process-step">
-          <div class="step-num">04</div>
+        <div class="proc-arrow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="proc-step">
+          <div class="proc-n">04</div>
           <h3>Odbiór i opieka</h3>
-          <p>Pokazujemy efekty i przekazujemy wskazówki pielęgnacyjne. Służymy pomocą po usłudze.</p>
+          <p>Pokazujemy efekty i przekazujemy instrukcje pielęgnacyjne. Jesteśmy do dyspozycji po usłudze.</p>
         </div>
       </div>
     </div>
@@ -297,38 +325,38 @@
   <!-- TESTIMONIALS -->
   <section id="testimonials">
     <div class="container">
-      <div class="section-header">
-        <p class="section-label">Opinie</p>
-        <h2>Co mówią klienci</h2>
+      <div class="section-head center">
+        <p class="label">Opinie klientów</p>
+        <h2>Co o nas mówią</h2>
       </div>
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+      <div class="reviews-grid">
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
           <p>"Rewelacyjna robota. BMW wygląda jak nowe po korekcie lakieru i powłoce ceramicznej. Polecam każdemu, kto poważnie podchodzi do pielęgnacji auta."</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">MK</div>
+          <div class="review-author">
+            <div class="review-av">MK</div>
             <div>
               <strong>Michał K.</strong>
               <span>BMW M3 F80</span>
             </div>
           </div>
         </div>
-        <div class="testimonial-card">
-          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
           <p>"Pranie tapicerki skórzanej — efekt niesamowity. Zapachy zniknęły całkowicie, skóra wygląda jak ze showroomu. Bardzo profesjonalne podejście."</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">AW</div>
+          <div class="review-author">
+            <div class="review-av">AW</div>
             <div>
               <strong>Anna W.</strong>
-              <span>Audi A6</span>
+              <span>Audi A6 C8</span>
             </div>
           </div>
         </div>
-        <div class="testimonial-card">
-          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-          <p>"Stałam się stałym klientem. Kompleksowy detailing przed sprzedażą auta — cena wzrosła o kilka tysięcy dzięki ich pracy. Warto każdej złotówki."</p>
-          <div class="testimonial-author">
-            <div class="author-avatar">PL</div>
+        <div class="review-card">
+          <div class="review-stars">★★★★★</div>
+          <p>"Kompleksowy detailing przed sprzedażą auta — cena wzrosła o kilka tysięcy dzięki ich pracy. Warto każdej złotówki. Zostałem stałym klientem."</p>
+          <div class="review-author">
+            <div class="review-av">PL</div>
             <div>
               <strong>Piotr L.</strong>
               <span>Porsche Macan</span>
@@ -339,61 +367,85 @@
     </div>
   </section>
 
+  <!-- CTA BAND -->
+  <div class="cta-band">
+    <div class="container">
+      <div class="cta-inner">
+        <div>
+          <h2>Gotowy na efekt wow?</h2>
+          <p>Umów bezpłatną konsultację — odpowiadamy tego samego dnia.</p>
+        </div>
+        <a href="#contact" class="btn btn-primary btn-lg">Umów wizytę</a>
+      </div>
+    </div>
+  </div>
+
   <!-- CONTACT -->
   <section id="contact">
     <div class="container">
-      <div class="section-header">
-        <p class="section-label">Skontaktuj się</p>
-        <h2>Umów wizytę</h2>
-        <p class="section-desc">Wypełnij formularz lub zadzwoń — odpowiadamy tego samego dnia.</p>
-      </div>
-      <div class="contact-grid">
+      <div class="contact-wrap">
+
         <div class="contact-info">
-          <div class="contact-item">
-            <div class="contact-icon">&#9742;</div>
-            <div>
-              <strong>Telefon</strong>
-              <a href="tel:+48000000000">+48 000 000 000</a>
+          <p class="label">Skontaktuj się</p>
+          <h2>Umów wizytę</h2>
+          <p class="contact-sub">Wypełnij formularz lub zadzwoń — odpowiadamy tego samego dnia.</p>
+
+          <div class="info-list">
+            <a href="tel:+48000000000" class="info-item">
+              <div class="info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.81a19.79 19.79 0 01-3.07-8.67A2 2 0 012 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>
+              </div>
+              <div>
+                <strong>Telefon</strong>
+                <span>+48 000 000 000</span>
+              </div>
+            </a>
+            <a href="mailto:kontakt@prestiq.pl" class="info-item">
+              <div class="info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              </div>
+              <div>
+                <strong>E-mail</strong>
+                <span>kontakt@prestiq.pl</span>
+              </div>
+            </a>
+            <div class="info-item">
+              <div class="info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              </div>
+              <div>
+                <strong>Adres</strong>
+                <span>ul. Przykładowa 1, 00-000 Miasto</span>
+              </div>
             </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon">&#9993;</div>
-            <div>
-              <strong>E-mail</strong>
-              <a href="mailto:kontakt@prestiq.pl">kontakt@prestiq.pl</a>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon">&#9679;</div>
-            <div>
-              <strong>Adres</strong>
-              <span>ul. Przykładowa 1<br/>00-000 Miasto</span>
-            </div>
-          </div>
-          <div class="contact-item">
-            <div class="contact-icon">&#9716;</div>
-            <div>
-              <strong>Godziny otwarcia</strong>
-              <span>Pon–Pt: 8:00–18:00<br/>Sob: 9:00–14:00</span>
+            <div class="info-item">
+              <div class="info-icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div>
+                <strong>Godziny</strong>
+                <span>Pon–Pt: 8:00–18:00 &nbsp;·&nbsp; Sob: 9:00–14:00</span>
+              </div>
             </div>
           </div>
         </div>
-        <form class="contact-form" id="contactForm">
+
+        <form class="contact-form" id="contactForm" novalidate>
           <div class="form-row">
-            <div class="form-group">
+            <div class="form-field">
               <label for="name">Imię i nazwisko</label>
               <input type="text" id="name" name="name" placeholder="Jan Kowalski" required />
             </div>
-            <div class="form-group">
+            <div class="form-field">
               <label for="phone">Telefon</label>
               <input type="tel" id="phone" name="phone" placeholder="+48 000 000 000" />
             </div>
           </div>
-          <div class="form-group">
+          <div class="form-field">
             <label for="email">E-mail</label>
             <input type="email" id="email" name="email" placeholder="jan@example.com" required />
           </div>
-          <div class="form-group">
+          <div class="form-field">
             <label for="service">Usługa</label>
             <select id="service" name="service">
               <option value="">Wybierz usługę...</option>
@@ -405,13 +457,20 @@
               <option>Pakiet kompleksowy</option>
             </select>
           </div>
-          <div class="form-group">
+          <div class="form-field">
             <label for="message">Wiadomość</label>
-            <textarea id="message" name="message" rows="4" placeholder="Opisz swoje auto i czego potrzebujesz..."></textarea>
+            <textarea id="message" name="message" rows="4" placeholder="Opisz swój pojazd i czego potrzebujesz..."></textarea>
           </div>
-          <button type="submit" class="btn btn-purple btn-full">Wyślij zapytanie</button>
-          <p class="form-note">Odpowiadamy w ciągu 24 godzin.</p>
+          <!-- Honeypot — ukryte przed użytkownikiem, widoczne dla botów -->
+          <div class="hp-field" aria-hidden="true">
+            <label for="website">Zostaw puste</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" id="submitBtn">Wyślij zapytanie</button>
+          <p class="form-note" id="formNote">Odpowiadamy w ciągu 24 godzin.</p>
         </form>
+
       </div>
     </div>
   </section>
@@ -419,13 +478,17 @@
   <!-- FOOTER -->
   <footer id="footer">
     <div class="container">
-      <div class="footer-grid">
+      <div class="footer-top">
         <div class="footer-brand">
-          <a href="#hero" class="logo">PRESTIQ <span>CAR SPA</span></a>
-          <p>Profesjonalny detailing samochodowy. Pasja, precyzja, doskonałość.</p>
-          <div class="social-links">
-            <a href="#" class="social-link" aria-label="Facebook">f</a>
-            <a href="#" class="social-link" aria-label="Instagram">in</a>
+          <a href="#hero" class="logo">PRESTIQ<span>.</span></a>
+          <p>Profesjonalny detailing samochodowy.<br/>Pasja, precyzja, doskonałość.</p>
+          <div class="socials">
+            <a href="#" aria-label="Facebook" class="social">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+            </a>
+            <a href="#" aria-label="Instagram" class="social">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            </a>
           </div>
         </div>
         <div class="footer-col">
