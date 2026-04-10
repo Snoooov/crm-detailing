@@ -16,7 +16,7 @@ const inquiryLimiter = rateLimit({
 });
 
 // ─── POST /api/public/inquiries — publiczny formularz ze strony ──────────────
-router.post('/public/inquiries', inquiryLimiter, async (req, res) => {
+router.post('/inquiries', inquiryLimiter, async (req, res) => {
   try {
     const { name, email, phone, service, message, website: honeypot } = req.body;
 
