@@ -186,8 +186,7 @@ const VehiclesPage = () => {
         ) : vehicles.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 40, color: '#6b7280' }}>Brak pojazdów</div>
         ) : (
-          
-          <table>
+          <div style={{ overflowX: 'auto' }}><table>
             <thead>
               <tr>
                 <th>Marka / Model</th>
@@ -212,7 +211,7 @@ const VehiclesPage = () => {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
         <Pagination
           total={vehicles.length}

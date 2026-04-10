@@ -2,7 +2,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import GlobalSearch from './GlobalSearch.jsx';
 import NotificationBell from './NotificationBell.jsx';
 import { useState, useEffect } from 'react';
-import { Outlet, NavLink, useNavigate } from 'react-router-dom';
+import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 
 const NAV_ITEMS = [
   { to: '/dashboard', label: 'Dashboard',    icon: '▦' },
@@ -20,9 +20,10 @@ const ADMIN_ITEMS = [
   { to: '/logs',     label: 'Logi systemu',   icon: '◈', adminOnly: true },
 ];
 
-const NavItem = ({ to, label, icon, colors }) => (
+const NavItem = ({ to, label, icon, colors, onClick }) => (
   <NavLink
     to={to}
+    onClick={onClick}
     style={({ isActive }) => ({
       display: 'flex',
       alignItems: 'center',
@@ -55,19 +56,43 @@ const NavItem = ({ to, label, icon, colors }) => (
   </NavLink>
 );
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+  return isMobile;
+};
+
 const Layout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isMobile = useIsMobile();
   const isAdmin = user?.role === 'admin';
   const isManager = user?.role === 'manager';
   const isPrivileged = isAdmin || isManager;
 
   const [dark, setDark] = useState(() => localStorage.getItem('theme') === 'dark');
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     document.body.classList.toggle('dark', dark);
     localStorage.setItem('theme', dark ? 'dark' : 'light');
   }, [dark]);
+
+  // Zamknij sidebar przy zmianie strony na mobile
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+  }, [location.pathname, isMobile]);
+
+  // Blokuj scroll body gdy sidebar otwarty na mobile
+  useEffect(() => {
+    document.body.style.overflow = (isMobile && sidebarOpen) ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isMobile, sidebarOpen]);
 
   const handleLogout = () => {
     logout();
@@ -86,22 +111,51 @@ const Layout = () => {
     ? user.name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase()
     : '?';
 
+  const closeSidebar = () => setSidebarOpen(false);
+
+  const sidebarStyle = isMobile ? {
+    position: 'fixed',
+    top: 0,
+    left: sidebarOpen ? 0 : -228,
+    bottom: 0,
+    width: 228,
+    zIndex: 1000,
+    transition: 'left 0.25s ease',
+    background: sidebarBg,
+    display: 'flex',
+    flexDirection: 'column',
+    borderRight: `1px solid ${dark ? '#30363d' : 'rgba(255,255,255,0.08)'}`,
+  } : {
+    width: 228,
+    background: sidebarBg,
+    display: 'flex',
+    flexDirection: 'column',
+    flexShrink: 0,
+    position: 'relative',
+    borderRight: `1px solid ${dark ? '#30363d' : 'rgba(255,255,255,0.08)'}`,
+  };
+
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <aside style={{
-        width: 228,
-        background: sidebarBg,
-        display: 'flex',
-        flexDirection: 'column',
-        flexShrink: 0,
-        position: 'relative',
-        borderRight: `1px solid ${dark ? '#30363d' : 'rgba(255,255,255,0.08)'}`,
-      }}>
+
+      {/* Overlay mobile */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={closeSidebar}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            zIndex: 999,
+            backdropFilter: 'blur(2px)',
+          }}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside style={sidebarStyle}>
         {/* Logo */}
-        <div style={{
-          padding: '22px 20px 18px',
-          borderBottom: `1px solid ${colors.divider}`,
-        }}>
+        <div style={{ padding: '22px 20px 18px', borderBottom: `1px solid ${colors.divider}` }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <div style={{
               width: 34, height: 34, borderRadius: 9,
@@ -128,7 +182,7 @@ const Layout = () => {
           <GlobalSearch />
         </div>
 
-        {/* Profil użytkownika */}
+        {/* Profil */}
         <div style={{
           margin: '10px 10px 0',
           padding: '10px 12px',
@@ -159,7 +213,7 @@ const Layout = () => {
           <NotificationBell />
         </div>
 
-        {/* Nav główny */}
+        {/* Nav */}
         <nav style={{ flex: 1, padding: '12px 10px', overflowY: 'auto' }}>
           <div style={{
             fontSize: 10, fontWeight: 700, color: colors.subtext,
@@ -169,7 +223,7 @@ const Layout = () => {
             Menu
           </div>
           {NAV_ITEMS.map(item => (
-            <NavItem key={item.to} {...item} colors={colors} />
+            <NavItem key={item.to} {...item} colors={colors} onClick={isMobile ? closeSidebar : undefined} />
           ))}
 
           {isPrivileged && (
@@ -184,25 +238,18 @@ const Layout = () => {
                 Administracja
               </div>
               {ADMIN_ITEMS.filter(item => !item.adminOnly || isAdmin).map(item => (
-                <NavItem key={item.to} {...item} colors={colors} />
+                <NavItem key={item.to} {...item} colors={colors} onClick={isMobile ? closeSidebar : undefined} />
               ))}
             </>
           )}
 
-          <div style={{
-            borderTop: `1px solid ${colors.divider}`,
-            marginTop: 10,
-            paddingTop: 10,
-          }}>
-            <NavItem to="/settings" label="Ustawienia" icon="◬" colors={colors} />
+          <div style={{ borderTop: `1px solid ${colors.divider}`, marginTop: 10, paddingTop: 10 }}>
+            <NavItem to="/settings" label="Ustawienia" icon="◬" colors={colors} onClick={isMobile ? closeSidebar : undefined} />
           </div>
         </nav>
 
         {/* Actions */}
-        <div style={{
-          padding: '12px 14px 18px',
-          borderTop: `1px solid ${colors.divider}`,
-        }}>
+        <div style={{ padding: '12px 14px 18px', borderTop: `1px solid ${colors.divider}` }}>
           <div style={{ display: 'flex', gap: 6 }}>
             <button
               onClick={() => setDark(!dark)}
@@ -246,12 +293,46 @@ const Layout = () => {
         </div>
       </aside>
 
+      {/* Main */}
       <main style={{
         flex: 1,
-        padding: '32px 36px',
+        padding: isMobile ? '16px' : '32px 36px',
         overflow: 'auto',
         minHeight: '100vh',
+        minWidth: 0,
       }}>
+        {/* Topbar mobile */}
+        {isMobile && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: 16,
+            paddingBottom: 12,
+            borderBottom: `1px solid ${dark ? '#30363d' : '#e5e7eb'}`,
+          }}>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: 22,
+                color: dark ? '#8b949e' : '#374151',
+                padding: '4px 8px',
+                borderRadius: 6,
+                lineHeight: 1,
+              }}
+              aria-label="Otwórz menu"
+            >
+              ☰
+            </button>
+            <div style={{ fontWeight: 700, fontSize: 14, color: dark ? 'white' : '#1f2937' }}>
+              Auto Detailing <span style={{ color: '#6366f1' }}>CRM</span>
+            </div>
+            <div style={{ width: 40 }} />
+          </div>
+        )}
         <Outlet />
       </main>
     </div>

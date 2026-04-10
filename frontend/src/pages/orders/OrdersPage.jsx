@@ -17,6 +17,12 @@ const STATUS_ORDER = ['inspection', 'planned', 'in_progress', 'done', 'released'
 
 const StatusGroup = ({ status, orders, onNavigate, isDark, isAdmin, onStatusChange, selectedIds, onSelectOne }) => {
   const [page, setPage] = useState(1);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
 
   const sorted = [...orders].sort((a, b) => {
     const da = a.date_from ? new Date(a.date_from) : new Date(0);
@@ -62,77 +68,138 @@ const StatusGroup = ({ status, orders, onNavigate, isDark, isAdmin, onStatusChan
         )}
       </div>
 
-      {/* Tabela */}
-      <table>
-        <thead>
-          <tr>
-            {isAdmin && <th style={{ width: 32 }} />}
-            <th>Data</th>
-            <th>Klient</th>
-            <th>Pojazd</th>
-            <th>Usługa</th>
-            <th>Cena</th>
-            <th>Pracownicy</th>
-            {isAdmin && <th>Zmień status</th>}
-          </tr>
-        </thead>
-        <tbody>
+      {/* Mobile: karty */}
+      {isMobile ? (
+        <div style={{ padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
           {slice.map(order => (
-            <tr key={order.id} style={{ cursor: 'pointer' }} onClick={() => onNavigate(`/orders/${order.id}`)}>
-              {isAdmin && (
-                <td onClick={e => e.stopPropagation()}>
-                  <input type="checkbox" checked={selectedIds.includes(order.id)} onChange={() => onSelectOne(order.id)} />
-                </td>
-              )}
-              <td style={{ whiteSpace: 'nowrap' }}>{fmtDate(order.date_from)}</td>
-              <td>{order.client_name}</td>
-              <td>
+            <div
+              key={order.id}
+              onClick={() => onNavigate(`/orders/${order.id}`)}
+              style={{
+                border: `1px solid var(--border)`,
+                borderRadius: 8,
+                padding: '12px 14px',
+                cursor: 'pointer',
+                background: isDark ? 'var(--surface)' : '#f9fafb',
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+                <div style={{ fontWeight: 600, fontSize: 14 }}>{order.client_name}</div>
+                <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{fmtDate(order.date_from)}</div>
+              </div>
+              <div style={{ fontSize: 13, color: 'var(--text-3)', marginBottom: 4 }}>
                 {order.vehicle_brand} {order.vehicle_model}
-                <span style={{ color: 'var(--text-3)', fontSize: 12, marginLeft: 6 }}>{order.plate_number}</span>
-              </td>
-              <td>{order.service_name}</td>
-              <td style={{ whiteSpace: 'nowrap' }}>
-                {fmt(order.price)}
-                {order.is_paid && <span style={{ marginLeft: 6, fontSize: 11, color: '#16a34a', fontWeight: 700 }}>✓</span>}
-              </td>
-              <td onClick={e => e.stopPropagation()}>
-                {order.assigned_users?.length > 0 ? (
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                    {order.assigned_users.map(u => (
-                      <span key={u.id} style={{
-                        background: 'var(--accent-light)', color: 'var(--accent)',
-                        borderRadius: 99, padding: '2px 8px', fontSize: 11, fontWeight: 600,
-                      }}>
-                        {u.name.split(' ')[0]}
-                      </span>
-                    ))}
-                  </div>
-                ) : <span style={{ color: 'var(--text-3)', fontSize: 12 }}>—</span>}
-              </td>
-              {isAdmin && (
-                <td onClick={e => e.stopPropagation()}>
-                  <select
-                    value={order.status}
-                    onChange={e => onStatusChange(order.id, e.target.value)}
-                    style={{
-                      color: STATUSES[order.status]?.color,
-                      fontWeight: 600,
-                      border: `1px solid ${STATUSES[order.status]?.color}`,
-                      borderRadius: 6, padding: '4px 8px',
-                      background: isDark ? 'var(--surface)' : 'white',
-                      width: 'auto',
-                    }}
-                  >
-                    {Object.entries(STATUSES).map(([v, { label: l }]) => (
-                      <option key={v} value={v}>{l}</option>
-                    ))}
-                  </select>
-                </td>
+                {order.plate_number && <span style={{ marginLeft: 6 }}>· {order.plate_number}</span>}
+              </div>
+              {order.service_name && (
+                <div style={{ fontSize: 13, marginBottom: 6 }}>{order.service_name}</div>
               )}
-            </tr>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                {isAdmin && (
+                  <div style={{ fontWeight: 600, fontSize: 13 }}>
+                    {fmt(order.price)}
+                    {order.is_paid && <span style={{ marginLeft: 6, fontSize: 11, color: '#16a34a' }}>✓</span>}
+                  </div>
+                )}
+                {isAdmin && (
+                  <div onClick={e => e.stopPropagation()}>
+                    <select
+                      value={order.status}
+                      onChange={e => onStatusChange(order.id, e.target.value)}
+                      style={{
+                        color: STATUSES[order.status]?.color,
+                        fontWeight: 600,
+                        border: `1px solid ${STATUSES[order.status]?.color}`,
+                        borderRadius: 6, padding: '4px 8px',
+                        background: isDark ? 'var(--surface)' : 'white',
+                        fontSize: 12,
+                      }}
+                    >
+                      {Object.entries(STATUSES).map(([v, { label: l }]) => (
+                        <option key={v} value={v}>{l}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+              </div>
+            </div>
           ))}
-        </tbody>
-      </table>
+        </div>
+      ) : (
+        /* Desktop: tabela */
+        <div style={{ overflowX: 'auto' }}>
+          <table>
+            <thead>
+              <tr>
+                {isAdmin && <th style={{ width: 32 }} />}
+                <th>Data</th>
+                <th>Klient</th>
+                <th>Pojazd</th>
+                <th>Usługa</th>
+                <th>Cena</th>
+                <th>Pracownicy</th>
+                {isAdmin && <th>Zmień status</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {slice.map(order => (
+                <tr key={order.id} style={{ cursor: 'pointer' }} onClick={() => onNavigate(`/orders/${order.id}`)}>
+                  {isAdmin && (
+                    <td onClick={e => e.stopPropagation()}>
+                      <input type="checkbox" checked={selectedIds.includes(order.id)} onChange={() => onSelectOne(order.id)} />
+                    </td>
+                  )}
+                  <td style={{ whiteSpace: 'nowrap' }}>{fmtDate(order.date_from)}</td>
+                  <td>{order.client_name}</td>
+                  <td>
+                    {order.vehicle_brand} {order.vehicle_model}
+                    <span style={{ color: 'var(--text-3)', fontSize: 12, marginLeft: 6 }}>{order.plate_number}</span>
+                  </td>
+                  <td>{order.service_name}</td>
+                  <td style={{ whiteSpace: 'nowrap' }}>
+                    {fmt(order.price)}
+                    {order.is_paid && <span style={{ marginLeft: 6, fontSize: 11, color: '#16a34a', fontWeight: 700 }}>✓</span>}
+                  </td>
+                  <td onClick={e => e.stopPropagation()}>
+                    {order.assigned_users?.length > 0 ? (
+                      <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                        {order.assigned_users.map(u => (
+                          <span key={u.id} style={{
+                            background: 'var(--accent-light)', color: 'var(--accent)',
+                            borderRadius: 99, padding: '2px 8px', fontSize: 11, fontWeight: 600,
+                          }}>
+                            {u.name.split(' ')[0]}
+                          </span>
+                        ))}
+                      </div>
+                    ) : <span style={{ color: 'var(--text-3)', fontSize: 12 }}>—</span>}
+                  </td>
+                  {isAdmin && (
+                    <td onClick={e => e.stopPropagation()}>
+                      <select
+                        value={order.status}
+                        onChange={e => onStatusChange(order.id, e.target.value)}
+                        style={{
+                          color: STATUSES[order.status]?.color,
+                          fontWeight: 600,
+                          border: `1px solid ${STATUSES[order.status]?.color}`,
+                          borderRadius: 6, padding: '4px 8px',
+                          background: isDark ? 'var(--surface)' : 'white',
+                          width: 'auto',
+                        }}
+                      >
+                        {Object.entries(STATUSES).map(([v, { label: l }]) => (
+                          <option key={v} value={v}>{l}</option>
+                        ))}
+                      </select>
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Nawigacja stron */}
       {totalPages > 1 && (
@@ -352,6 +419,12 @@ const KanbanBoard = ({ orders, onStatusChange, onNavigate, isDark }) => {
 const OrdersPage = () => {
   usePageTitle('Zlecenia');
   const isDark = useDarkMode();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('ordersView') || 'list');
 
   useEffect(() => { localStorage.setItem('ordersView', viewMode); }, [viewMode]);
@@ -584,7 +657,7 @@ const OrdersPage = () => {
       {/* Panel filtrów */}
       {showFilters && (
         <div className="card" style={{ marginBottom: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 16, marginBottom: 12 }}>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label>Status</label>
               <select name="status" value={filters.status} onChange={handleFilterChange}>

@@ -15,7 +15,7 @@ const ClientsTable = ({ clients, navigate, showNip = false }) => (
   clients.length === 0 ? (
     <div style={{ textAlign: 'center', padding: '24px 0', color: '#6b7280' }}>Brak klientów</div>
   ) : (
-    <table>
+    <div style={{ overflowX: 'auto' }}><table>
       <thead>
         <tr>
           <th>Imię i nazwisko / Firma</th>
@@ -51,7 +51,7 @@ const ClientsTable = ({ clients, navigate, showNip = false }) => (
           </tr>
         ))}
       </tbody>
-    </table>
+    </table></div>
   )
 );
 

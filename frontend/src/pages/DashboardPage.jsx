@@ -5,6 +5,16 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { ORDER_STATUSES as STATUSES } from '../constants/orderStatuses.js';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return isMobile;
+};
+
 const formatPrice = (price) => {
   if (!price && price !== 0) return '—';
   return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(price);
@@ -81,6 +91,7 @@ const DashboardPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isAdmin = user?.role === 'admin';
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     api.get('/dashboard').then(res => {
@@ -102,14 +113,14 @@ const DashboardPage = () => {
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 24 }}>Dashboard</h1>
 
       {/* Szybkie akcje */}
-      <div style={{ display: 'flex', gap: 12, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 24 }}>
         <QuickAction label="Nowe zlecenie" color="#2563eb" onClick={() => navigate('/orders/new')} />
         <QuickAction label="Nowy klient" color="#16a34a" onClick={() => navigate('/clients')} />
         <QuickAction label="Nowy pojazd" color="#7c3aed" onClick={() => navigate('/vehicles')} />
       </div>
 
       {/* Karty statystyk */}
-      <div style={{ display: 'grid', gridTemplateColumns: isAdmin ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : (isAdmin ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)'), gap: 16, marginBottom: 24 }}>
         {isAdmin && (
           <StatCard
             label="Przychód w tym miesiącu"
@@ -132,7 +143,7 @@ const DashboardPage = () => {
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: isAdmin ? '1fr 1fr' : '1fr', gap: 24, marginBottom: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: (!isMobile && isAdmin) ? '1fr 1fr' : '1fr', gap: 24, marginBottom: 24 }}>
         {/* Wykres przychodów — tylko admin */}
         {isAdmin && (
           <div className="card">
@@ -184,7 +195,7 @@ const DashboardPage = () => {
           {data.weeklyDailyRevenue.length === 0 ? (
             <div style={{ color: '#6b7280', textAlign: 'center', padding: 24 }}>Brak danych w tym tygodniu</div>
           ) : (
-            <table>
+            <div style={{ overflowX: 'auto' }}><table>
               <thead>
                 <tr>
                   <th>Dzień</th>
@@ -220,7 +231,7 @@ const DashboardPage = () => {
                   </td>
                 </tr>
               </tbody>
-            </table>
+            </table></div>
           )}
         </div>
       )}
@@ -233,7 +244,7 @@ const DashboardPage = () => {
         {data.upcomingOrders.length === 0 ? (
           <div style={{ color: '#6b7280', textAlign: 'center', padding: 24 }}>Brak nadchodzących zleceń</div>
         ) : (
-          <table>
+          <div style={{ overflowX: 'auto' }}><table>
             <thead>
               <tr>
                 <th>Data</th>
@@ -270,7 +281,7 @@ const DashboardPage = () => {
                 </tr>
               ))}
             </tbody>
-          </table>
+          </table></div>
         )}
       </div>
     </div>

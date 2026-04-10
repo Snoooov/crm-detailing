@@ -15,6 +15,12 @@ const OrderDetailPage = () => {
   const isAdmin = currentUser?.role === 'admin';
   const isPrivileged = ['admin', 'manager'].includes(currentUser?.role);
   const isDark = useDarkMode();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
 
   const { id } = useParams();
   const navigate = useNavigate();
@@ -241,7 +247,7 @@ const OrderDetailPage = () => {
         <div className="card" style={{ maxWidth: 640 }}>
           {!editing ? (
             <>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginBottom: 24 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24, marginBottom: 24 }}>
                 <div>
                   <div style={{ color: '#6b7280', fontSize: 13, marginBottom: 4 }}>Klient</div>
                   <div style={{ fontWeight: 600 }}>{order.client_name}</div>
@@ -384,7 +390,7 @@ const OrderDetailPage = () => {
                 <textarea name="service_description" value={form.service_description || ''} onChange={handleChange} rows={3} />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                 <div className="form-group">
                   <label>Data od</label>
                   <input type="date" name="date_from" value={form.date_from?.split('T')[0] || ''} onChange={handleChange} disabled={!isPrivileged} />
@@ -395,7 +401,7 @@ const OrderDetailPage = () => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                 <div className="form-group">
                   <label>
                     Cena (PLN)
