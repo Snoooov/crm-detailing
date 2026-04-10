@@ -114,7 +114,7 @@ pool.connect()
         INSERT INTO email_templates (type, subject, body, enabled, delay_days) VALUES
           ('order_confirmation', 'Potwierdzenie przyjęcia zlecenia', '', TRUE, 0),
           ('order_ready', 'Twój pojazd jest gotowy do odbioru', '', TRUE, 0),
-          ('review_request', 'Poproś o opinię', '', TRUE, 1)
+          ('review_request', 'Prośba o opinię', '', TRUE, 1)
         ON CONFLICT (type) DO NOTHING;
       `);
 
@@ -251,21 +251,6 @@ pool.connect()
         -- Usuń zlecenia bez żadnej nazwy usługi (nie pasują do żadnej usługi)
         DELETE FROM orders WHERE service_name IS NULL OR TRIM(service_name) = '';
 
-        -- Tabela zgłoszeń ze strony www
-        CREATE TABLE IF NOT EXISTS website_inquiries (
-          id SERIAL PRIMARY KEY,
-          name VARCHAR(255) NOT NULL,
-          email VARCHAR(255) NOT NULL,
-          phone VARCHAR(50),
-          service VARCHAR(255),
-          message TEXT,
-          ip_address VARCHAR(45),
-          status VARCHAR(30) DEFAULT 'new',
-          created_at TIMESTAMP DEFAULT NOW()
-        );
-        CREATE INDEX IF NOT EXISTS idx_inquiries_status ON website_inquiries(status);
-        CREATE INDEX IF NOT EXISTS idx_inquiries_created_at ON website_inquiries(created_at DESC);
-
         -- NULL wartości finansowe
         UPDATE orders SET price     = 0 WHERE price     IS NULL;
         UPDATE orders SET paid_cash = 0 WHERE paid_cash IS NULL;
@@ -282,6 +267,28 @@ pool.connect()
       console.log('Migracje wykonane');
     } catch (err) {
       console.error('Błąd migracji:', err.message);
+    }
+
+    // Tabela zgłoszeń www — osobny blok żeby błędy innych migracji jej nie blokowały
+    try {
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS website_inquiries (
+          id SERIAL PRIMARY KEY,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(50),
+          service VARCHAR(255),
+          message TEXT,
+          ip_address VARCHAR(45),
+          status VARCHAR(30) DEFAULT 'new',
+          created_at TIMESTAMP DEFAULT NOW()
+        );
+        CREATE INDEX IF NOT EXISTS idx_inquiries_status ON website_inquiries(status);
+        CREATE INDEX IF NOT EXISTS idx_inquiries_created_at ON website_inquiries(created_at DESC);
+      `);
+      console.log('Tabela website_inquiries gotowa');
+    } catch (err) {
+      console.error('Błąd migracji website_inquiries:', err.message);
     } finally {
       client.release();
     }
