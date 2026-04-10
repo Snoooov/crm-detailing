@@ -12,7 +12,10 @@
       "Bash(node --check C:/Users/snovg/Desktop/autodetailing-crm/backend/src/routes/twoFactorRoutes.js)",
       "Bash(node update_email_templates.js)",
       "Bash(node insert_date_changed_template.js)",
-      "Bash(grep -n \"CREATE TABLE\" /c/Users/snovg/Desktop/autodetailing-crm/backend/src/models/*.js /c/Users/snovg/Desktop/autodetailing-crm/backend/src/index.js)"
+      "Bash(grep -n \"CREATE TABLE\" /c/Users/snovg/Desktop/autodetailing-crm/backend/src/models/*.js /c/Users/snovg/Desktop/autodetailing-crm/backend/src/index.js)",
+      "Bash(git -C \"/c/Users/snovg/Desktop/autodetailing-crm\" add -A)",
+      "Bash(git -C \"/c/Users/snovg/Desktop/autodetailing-crm\" commit -m \"remove vercel config files\")",
+      "Bash(git -C \"/c/Users/snovg/Desktop/autodetailing-crm\" push)"
     ]
   }
 }
