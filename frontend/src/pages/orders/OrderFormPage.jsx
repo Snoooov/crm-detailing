@@ -155,6 +155,12 @@ const OrderFormPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const isDark = useDarkMode();
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [services, setServices] = useState([]);
@@ -301,7 +307,7 @@ const OrderFormPage = () => {
             <textarea name="service_description" value={form.service_description} onChange={handleChange} rows={3} placeholder="Opcjonalny opis..." />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             <div className="form-group">
               <label>Data od</label>
               <input type="date" name="date_from" value={form.date_from} onChange={handleChange} />
@@ -312,7 +318,7 @@ const OrderFormPage = () => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             <div className="form-group">
               <label>
                 Cena (PLN)

@@ -181,9 +181,9 @@ const OrderDetailPage = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <button className="btn-secondary" onClick={() => navigate('/orders')}>← Wróć</button>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>Zlecenie #{order.id}</h1>
+        <h1 style={{ fontSize: isMobile ? 18 : 24, fontWeight: 700 }}>Zlecenie #{order.id}</h1>
         <span style={{
           color: STATUSES[order.status]?.color,
           border: `1px solid ${STATUSES[order.status]?.color}`,
@@ -197,7 +197,7 @@ const OrderDetailPage = () => {
       </div>
 
       {/* Tabs */}
-      <div style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: 24, display: 'flex', gap: 8 }}>
+      <div style={{ borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`, marginBottom: 24, display: 'flex', gap: 4, overflowX: 'auto', whiteSpace: 'nowrap' }}>
         <button style={tabStyle('details')} onClick={() => setActiveTab('details')}>Szczegóły</button>
         <button style={tabStyle('damage')} onClick={() => setActiveTab('damage')}>Mapa uszkodzeń</button>
         {isPrivileged && <button style={tabStyle('history')} onClick={() => setActiveTab('history')}>Historia zmian</button>}

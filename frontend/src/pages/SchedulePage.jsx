@@ -48,9 +48,16 @@ const SchedulePage = () => {
   const [weekStart, setWeekStart] = useState(getMonday(new Date()));
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const navigate = useNavigate();
-
   const isDark = useDarkMode();
+
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
 
   const STATUS_PRIORITY = { in_progress: 0, planned: 1, inspection: 2, done: 3, released: 4, cancelled: 5 };
 
@@ -94,21 +101,124 @@ const SchedulePage = () => {
     return new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(price);
   };
 
+  const DayCard = ({ day, i }) => {
+    const dayOrders = getOrdersForDay(day);
+    const today = isToday(day);
+    const isSelected = isMobile && selectedDay !== null && toDateStr(days[selectedDay]) === toDateStr(day);
+
+    return (
+      <div
+        onClick={() => isMobile && setSelectedDay(isSelected ? null : i)}
+        style={{
+          background: isDark ? '#1e293b' : 'white',
+          borderRadius: 8,
+          border: today ? '2px solid #2563eb' : isSelected ? '2px solid #7c3aed' : `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+          overflow: 'hidden',
+          minHeight: isMobile ? 'auto' : 200,
+          cursor: isMobile ? 'pointer' : 'default',
+        }}
+      >
+        <div style={{
+          padding: isMobile ? '8px 12px' : '10px 12px',
+          background: today ? '#2563eb' : (isDark ? '#263548' : '#f9fafb'),
+          borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div>
+            <div style={{
+              fontSize: 11,
+              fontWeight: 600,
+              color: today ? 'white' : (isDark ? '#94a3b8' : '#6b7280'),
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              {isMobile ? DAY_NAMES[i].slice(0, 3) : DAY_NAMES[i]}
+            </div>
+            <div style={{
+              fontSize: isMobile ? 16 : 20,
+              fontWeight: 700,
+              color: today ? 'white' : (isDark ? '#e2e8f0' : '#111827'),
+              lineHeight: 1.2,
+            }}>
+              {formatHeader(day)}
+            </div>
+          </div>
+          {isMobile && dayOrders.length > 0 && (
+            <span style={{
+              background: today ? 'rgba(255,255,255,0.25)' : '#2563eb18',
+              color: today ? 'white' : '#2563eb',
+              borderRadius: 99,
+              padding: '2px 8px',
+              fontSize: 12,
+              fontWeight: 700,
+            }}>
+              {dayOrders.length}
+            </span>
+          )}
+        </div>
+
+        {(!isMobile || isSelected) && (
+          <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {dayOrders.length === 0 ? (
+              <div style={{ color: isDark ? '#475569' : '#d1d5db', fontSize: 12, textAlign: 'center', padding: '16px 0' }}>
+                brak zleceń
+              </div>
+            ) : (
+              dayOrders.map(order => {
+                const status = STATUSES[order.status] || STATUSES.inspection;
+                const statusColor = isDark ? status.colorDark : status.color;
+                const statusBg = isDark ? status.bgDark : status.bg;
+                return (
+                  <div
+                    key={order.id}
+                    onClick={e => { e.stopPropagation(); navigate(`/orders/${order.id}`); }}
+                    style={{
+                      background: statusBg,
+                      borderLeft: `3px solid ${statusColor}`,
+                      borderRadius: 4,
+                      padding: '6px 8px',
+                      cursor: 'pointer',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
+                    onMouseLeave={e => e.currentTarget.style.opacity = '1'}
+                  >
+                    <div style={{ fontSize: 12, fontWeight: 600, color: statusColor, marginBottom: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {order.service_name}
+                    </div>
+                    <div style={{ fontSize: 11, color: isDark ? '#e2e8f0' : '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {order.client_name}
+                    </div>
+                    <div style={{ fontSize: 11, color: isDark ? '#94a3b8' : '#6b7280', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {order.vehicle_brand} {order.vehicle_model}
+                    </div>
+                    {order.price && (
+                      <div style={{ fontSize: 11, color: statusColor, fontWeight: 600, marginTop: 2 }}>
+                        {formatPrice(order.price)}
+                      </div>
+                    )}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div>
-      {/* Nagłówek */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
         <h1 style={{ fontSize: 24, fontWeight: 700 }}>Harmonogram</h1>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <button className="btn-secondary" onClick={goToPrevWeek}>←</button>
-          <button className="btn-secondary" onClick={goToCurrentWeek} style={{ fontSize: 13 }}>
-            Dziś
-          </button>
+          <button className="btn-secondary" onClick={goToCurrentWeek} style={{ fontSize: 13 }}>Dziś</button>
           <button className="btn-secondary" onClick={goToNextWeek}>→</button>
         </div>
       </div>
 
-      {/* Zakres tygodnia */}
       <div style={{ fontSize: 15, color: '#6b7280', marginBottom: 16, fontWeight: 500 }}>
         {formatWeekRange(weekStart)}
       </div>
@@ -118,126 +228,10 @@ const SchedulePage = () => {
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          gap: 8,
+          gridTemplateColumns: isMobile ? 'repeat(7, 1fr)' : 'repeat(7, 1fr)',
+          gap: isMobile ? 4 : 8,
         }}>
-          {days.map((day, i) => {
-            const dayOrders = getOrdersForDay(day);
-            const today = isToday(day);
-
-            return (
-              <div key={i} style={{
-                background: isDark ? '#1e293b' : 'white',
-                borderRadius: 8,
-                border: today
-                  ? '2px solid #2563eb'
-                  : `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
-                overflow: 'hidden',
-                minHeight: 200,
-              }}>
-                <div style={{
-                  padding: '10px 12px',
-                  background: today ? '#2563eb' : (isDark ? '#263548' : '#f9fafb'),
-                  borderBottom: `1px solid ${isDark ? '#334155' : '#e5e7eb'}`,
-                }}>
-                  <div style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    color: today ? 'white' : (isDark ? '#94a3b8' : '#6b7280'),
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.05em',
-                  }}>
-                    {DAY_NAMES[i]}
-                  </div>
-                  <div style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: today ? 'white' : (isDark ? '#e2e8f0' : '#111827'),
-                    lineHeight: 1.2,
-                  }}>
-                    {formatHeader(day)}
-                  </div>
-                </div>
-
-                <div style={{ padding: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {dayOrders.length === 0 ? (
-                    <div style={{
-                      color: isDark ? '#475569' : '#d1d5db',
-                      fontSize: 12,
-                      textAlign: 'center',
-                      padding: '16px 0'
-                    }}>
-                      brak zleceń
-                    </div>
-                  ) : (
-                    dayOrders.map(order => {
-                      const status = STATUSES[order.status] || STATUSES.inspection;
-                      const statusColor = isDark ? status.colorDark : status.color;
-                      const statusBg = isDark ? status.bgDark : status.bg;
-                      return (
-                        <div
-                          key={order.id}
-                          onClick={() => navigate(`/orders/${order.id}`)}
-                          style={{
-                            background: statusBg,
-                            borderLeft: `3px solid ${statusColor}`,
-                            borderRadius: 4,
-                            padding: '6px 8px',
-                            cursor: 'pointer',
-                          }}
-                          onMouseEnter={e => e.currentTarget.style.opacity = '0.8'}
-                          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-                        >
-                          <div style={{
-                            fontSize: 12,
-                            fontWeight: 600,
-                            color: statusColor,
-                            marginBottom: 2,
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {order.service_name}
-                          </div>
-
-                          <div style={{
-                            fontSize: 11,
-                            color: isDark ? '#e2e8f0' : '#374151',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {order.client_name}
-                          </div>
-
-                          <div style={{
-                            fontSize: 11,
-                            color: isDark ? '#94a3b8' : '#6b7280',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}>
-                            {order.vehicle_brand} {order.vehicle_model}
-                          </div>
-
-                          {order.price && (
-                            <div style={{
-                              fontSize: 11,
-                              color: statusColor,
-                              fontWeight: 600,
-                              marginTop: 2
-                            }}>
-                              {formatPrice(order.price)}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-            );
-          })}
+          {days.map((day, i) => <DayCard key={i} day={day} i={i} />)}
         </div>
       )}
     </div>

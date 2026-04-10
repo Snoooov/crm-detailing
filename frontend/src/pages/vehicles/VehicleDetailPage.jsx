@@ -12,8 +12,14 @@ const VehicleDetailPage = () => {
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(null);
   usePageTitle(vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Pojazd');
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 640);
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const h = () => setIsMobile(window.innerWidth < 640);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});
   const [error, setError] = useState('');
@@ -70,9 +76,9 @@ const VehicleDetailPage = () => {
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24, flexWrap: 'wrap' }}>
         <button className="btn-secondary" onClick={() => navigate('/vehicles')}>← Wróć</button>
-        <h1 style={{ fontSize: 24, fontWeight: 700 }}>{vehicle.brand} {vehicle.model}</h1>
+        <h1 style={{ fontSize: isMobile ? 18 : 24, fontWeight: 700 }}>{vehicle.brand} {vehicle.model}</h1>
         {vehicle.plate_number && (
           <span style={{
             background: isDark ? '#334155' : '#f3f4f6',
@@ -88,7 +94,7 @@ const VehicleDetailPage = () => {
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 24 }}>
         <div className="card">
           <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 16 }}>Dane pojazdu</h2>
 
