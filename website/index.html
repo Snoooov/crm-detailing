@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Prestiq Car Spa — Profesjonalny Detailing Samochodowy</title>
+  <meta name="description" content="Prestiq Car Spa — profesjonalny detailing samochodowy. Pielęgnacja, korekta lakieru, powłoki ceramiczne, pranie tapicerki." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav id="navbar">
+    <div class="nav-inner">
+      <a href="#hero" class="logo">PRESTIQ <span>CAR SPA</span></a>
+      <button class="nav-toggle" id="navToggle" aria-label="Menu">&#9776;</button>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#services">Usługi</a></li>
+        <li><a href="#about">O nas</a></li>
+        <li><a href="#gallery">Galeria</a></li>
+        <li><a href="#contact">Kontakt</a></li>
+        <li><a href="#contact" class="nav-cta">Umów wizytę</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section id="hero">
+    <div class="hero-bg">
+      <div class="hero-overlay"></div>
+      <video class="hero-video" autoplay muted loop playsinline poster="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1920&q=80">
+        <source src="" type="video/mp4" />
+      </video>
+      <img class="hero-img" src="https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?w=1920&q=80" alt="Detailing samochodu" />
+    </div>
+    <div class="hero-content">
+      <p class="hero-tagline">Profesjonalna pielęgnacja pojazdu</p>
+      <h1 class="hero-title">Twój samochód zasługuje<br/>na <span>doskonałość</span></h1>
+      <p class="hero-sub">Korekta lakieru · Powłoki ceramiczne · Pranie tapicerki · Detailing kompleksowy</p>
+      <div class="hero-btns">
+        <a href="#contact" class="btn btn-gold">Umów wizytę</a>
+        <a href="#services" class="btn btn-outline">Nasze usługi</a>
+      </div>
+    </div>
+    <a href="#services" class="hero-scroll">
+      <span></span>
+    </a>
+  </section>
+
+  <!-- STATS -->
+  <section id="stats">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <span class="stat-num" data-target="500">0</span><span class="stat-suffix">+</span>
+          <p>Zadowolonych klientów</p>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" data-target="8">0</span><span class="stat-suffix"></span>
+          <p>Lat doświadczenia</p>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" data-target="1200">0</span><span class="stat-suffix">+</span>
+          <p>Wykonanych zleceń</p>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" data-target="100">0</span><span class="stat-suffix">%</span>
+          <p>Gwarancja jakości</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Co oferujemy</p>
+        <h2>Nasze usługi</h2>
+        <p class="section-desc">Każde zlecenie traktujemy indywidualnie — dobieramy technologie i produkty najwyższej klasy.</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">&#10022;</div>
+          <h3>Detailing zewnętrzny</h3>
+          <p>Mycie, dekontaminacja, korekta lakieru maszynowa. Przywracamy połysk i głębię koloru.</p>
+          <ul>
+            <li>Mycie dwuwiaderko</li>
+            <li>Usuwanie smoły i żywicy</li>
+            <li>Polerowanie maszynowe</li>
+          </ul>
+        </div>
+        <div class="service-card featured">
+          <div class="service-badge">Bestseller</div>
+          <div class="service-icon">&#9670;</div>
+          <h3>Powłoka ceramiczna</h3>
+          <p>Trwała ochrona lakieru na lata. Hydrofobowość, odporność na zarysowania i UV.</p>
+          <ul>
+            <li>Gwarancja do 5 lat</li>
+            <li>Efekt lotus</li>
+            <li>Certyfikowane produkty</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#10023;</div>
+          <h3>Detailing wnętrza</h3>
+          <p>Kompleksowe czyszczenie i pielęgnacja każdego elementu kabiny pasażerskiej.</p>
+          <ul>
+            <li>Pranie tapicerki</li>
+            <li>Czyszczenie skóry</li>
+            <li>Ozonowanie</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#9762;</div>
+          <h3>Folia ochronna PPF</h3>
+          <p>Niewidoczna ochrona lakieru przed odpryskamy kamieni i zarysowaniami.</p>
+          <ul>
+            <li>Samonaprawiająca się</li>
+            <li>Przód, maska, progi</li>
+            <li>Cały pojazd</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#9672;</div>
+          <h3>Korekta lakieru</h3>
+          <p>Usuwamy hologramy, rysy i pajęczynki. Jednofazowa lub dwufazowa korekta.</p>
+          <ul>
+            <li>Ocena stanu lakieru</li>
+            <li>Pomiar grubości</li>
+            <li>Polerowanie wielostopniowe</li>
+          </ul>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">&#10038;</div>
+          <h3>Pakiet kompleksowy</h3>
+          <p>Pełen detailing zewnętrzny i wewnętrzny w jednym. Idealne przygotowanie do sezonu.</p>
+          <ul>
+            <li>Zewnątrz + wnętrze</li>
+            <li>Korekta lakieru</li>
+            <li>Powłoka ochronna</li>
+          </ul>
+        </div>
+      </div>
+      <div class="services-cta">
+        <a href="#contact" class="btn btn-gold">Zapytaj o wycenę</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <div class="about-grid">
+        <div class="about-images">
+          <img class="about-img about-img-main" src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80" alt="Detailer przy pracy" />
+          <img class="about-img about-img-secondary" src="https://images.unsplash.com/photo-1607860108855-64acf2078ed9?w=400&q=80" alt="Efekt detailingu" />
+          <div class="about-badge-float">
+            <span class="about-badge-num">8</span>
+            <span class="about-badge-txt">lat<br/>doświadczenia</span>
+          </div>
+        </div>
+        <div class="about-content">
+          <p class="section-label">Kim jesteśmy</p>
+          <h2>Pasja do<br/>doskonałości</h2>
+          <p class="about-lead">Prestiq Car Spa to studio detailingu z pasją do samochodów i obsesją na punkcie jakości. Każde zlecenie traktujemy jak własne auto.</p>
+          <p class="about-text">Używamy wyłącznie profesjonalnych produktów renomowanych marek. Nasz zespół regularnie poszerza wiedzę na szkoleniach branżowych w Polsce i za granicą.</p>
+          <div class="about-features">
+            <div class="about-feature">
+              <span class="feature-dot"></span>
+              <span>Certyfikowane produkty i technologie</span>
+            </div>
+            <div class="about-feature">
+              <span class="feature-dot"></span>
+              <span>Indywidualne podejście do każdego pojazdu</span>
+            </div>
+            <div class="about-feature">
+              <span class="feature-dot"></span>
+              <span>Transparentna wycena bez ukrytych kosztów</span>
+            </div>
+            <div class="about-feature">
+              <span class="feature-dot"></span>
+              <span>Gwarancja na wykonane usługi</span>
+            </div>
+          </div>
+          <a href="#contact" class="btn btn-gold">Poznaj nas bliżej</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- GALLERY -->
+  <section id="gallery">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Nasze realizacje</p>
+        <h2>Galeria</h2>
+        <p class="section-desc">Efekty mówią same za siebie.</p>
+      </div>
+      <div class="gallery-grid">
+        <div class="gallery-item gallery-item--wide">
+          <img src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=800&q=80" alt="Detailing - efekt" loading="lazy" />
+          <div class="gallery-overlay"><span>Korekta lakieru</span></div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1552519507-da3b142c6e3d?w=500&q=80" alt="Detailing - efekt" loading="lazy" />
+          <div class="gallery-overlay"><span>Detailing zewnętrzny</span></div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1580273916550-e323be2ae537?w=500&q=80" alt="Detailing - efekt" loading="lazy" />
+          <div class="gallery-overlay"><span>Powłoka ceramiczna</span></div>
+        </div>
+        <div class="gallery-item">
+          <img src="https://images.unsplash.com/photo-1544636331-e26879cd4d9b?w=500&q=80" alt="Wnętrze" loading="lazy" />
+          <div class="gallery-overlay"><span>Detailing wnętrza</span></div>
+        </div>
+        <div class="gallery-item gallery-item--wide">
+          <img src="https://images.unsplash.com/photo-1511919884226-fd3cad34687c?w=800&q=80" alt="Detailing - efekt" loading="lazy" />
+          <div class="gallery-overlay"><span>Efekt końcowy</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PROCESS -->
+  <section id="process">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Jak działamy</p>
+        <h2>Proces realizacji</h2>
+      </div>
+      <div class="process-steps">
+        <div class="process-step">
+          <div class="step-num">01</div>
+          <h3>Kontakt i wycena</h3>
+          <p>Skontaktuj się z nami telefonicznie lub przez formularz. Przygotujemy indywidualną wycenę.</p>
+        </div>
+        <div class="process-arrow">&#8594;</div>
+        <div class="process-step">
+          <div class="step-num">02</div>
+          <h3>Inspekcja pojazdu</h3>
+          <p>Dokładnie oceniamy stan lakieru i wnętrza. Dokumentujemy istniejące uszkodzenia.</p>
+        </div>
+        <div class="process-arrow">&#8594;</div>
+        <div class="process-step">
+          <div class="step-num">03</div>
+          <h3>Realizacja</h3>
+          <p>Wykonujemy usługę z najwyższą starannością, używając profesjonalnych produktów.</p>
+        </div>
+        <div class="process-arrow">&#8594;</div>
+        <div class="process-step">
+          <div class="step-num">04</div>
+          <h3>Odbiór i opieka</h3>
+          <p>Pokazujemy efekty i przekazujemy wskazówki pielęgnacyjne. Służymy pomocą po usłudze.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Opinie</p>
+        <h2>Co mówią klienci</h2>
+      </div>
+      <div class="testimonials-grid">
+        <div class="testimonial-card">
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p>"Rewelacyjna robota. BMW wygląda jak nowe po korekcie lakieru i powłoce ceramicznej. Polecam każdemu, kto poważnie podchodzi do pielęgnacji auta."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">MK</div>
+            <div>
+              <strong>Michał K.</strong>
+              <span>BMW M3 F80</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p>"Pranie tapicerki skórzanej — efekt niesamowity. Zapachy zniknęły całkowicie, skóra wygląda jak ze showroomu. Bardzo profesjonalne podejście."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">AW</div>
+            <div>
+              <strong>Anna W.</strong>
+              <span>Audi A6</span>
+            </div>
+          </div>
+        </div>
+        <div class="testimonial-card">
+          <div class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
+          <p>"Stałam się stałym klientem. Kompleksowy detailing przed sprzedażą auta — cena wzrosła o kilka tysięcy dzięki ich pracy. Warto każdej złotówki."</p>
+          <div class="testimonial-author">
+            <div class="author-avatar">PL</div>
+            <div>
+              <strong>Piotr L.</strong>
+              <span>Porsche Macan</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container">
+      <div class="section-header">
+        <p class="section-label">Skontaktuj się</p>
+        <h2>Umów wizytę</h2>
+        <p class="section-desc">Wypełnij formularz lub zadzwoń — odpowiadamy tego samego dnia.</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="contact-item">
+            <div class="contact-icon">&#9742;</div>
+            <div>
+              <strong>Telefon</strong>
+              <a href="tel:+48000000000">+48 000 000 000</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">&#9993;</div>
+            <div>
+              <strong>E-mail</strong>
+              <a href="mailto:kontakt@prestiq.pl">kontakt@prestiq.pl</a>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">&#9679;</div>
+            <div>
+              <strong>Adres</strong>
+              <span>ul. Przykładowa 1<br/>00-000 Miasto</span>
+            </div>
+          </div>
+          <div class="contact-item">
+            <div class="contact-icon">&#9716;</div>
+            <div>
+              <strong>Godziny otwarcia</strong>
+              <span>Pon–Pt: 8:00–18:00<br/>Sob: 9:00–14:00</span>
+            </div>
+          </div>
+        </div>
+        <form class="contact-form" id="contactForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="name">Imię i nazwisko</label>
+              <input type="text" id="name" name="name" placeholder="Jan Kowalski" required />
+            </div>
+            <div class="form-group">
+              <label for="phone">Telefon</label>
+              <input type="tel" id="phone" name="phone" placeholder="+48 000 000 000" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" placeholder="jan@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="service">Usługa</label>
+            <select id="service" name="service">
+              <option value="">Wybierz usługę...</option>
+              <option>Detailing zewnętrzny</option>
+              <option>Powłoka ceramiczna</option>
+              <option>Detailing wnętrza</option>
+              <option>Folia ochronna PPF</option>
+              <option>Korekta lakieru</option>
+              <option>Pakiet kompleksowy</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="message">Wiadomość</label>
+            <textarea id="message" name="message" rows="4" placeholder="Opisz swoje auto i czego potrzebujesz..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-gold btn-full">Wyślij zapytanie</button>
+          <p class="form-note">Odpowiadamy w ciągu 24 godzin.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer id="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#hero" class="logo">PRESTIQ <span>CAR SPA</span></a>
+          <p>Profesjonalny detailing samochodowy. Pasja, precyzja, doskonałość.</p>
+          <div class="social-links">
+            <a href="#" class="social-link" aria-label="Facebook">f</a>
+            <a href="#" class="social-link" aria-label="Instagram">in</a>
+          </div>
+        </div>
+        <div class="footer-col">
+          <h4>Usługi</h4>
+          <ul>
+            <li><a href="#services">Detailing zewnętrzny</a></li>
+            <li><a href="#services">Powłoka ceramiczna</a></li>
+            <li><a href="#services">Detailing wnętrza</a></li>
+            <li><a href="#services">Folia PPF</a></li>
+            <li><a href="#services">Korekta lakieru</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Firma</h4>
+          <ul>
+            <li><a href="#about">O nas</a></li>
+            <li><a href="#gallery">Galeria</a></li>
+            <li><a href="#testimonials">Opinie</a></li>
+            <li><a href="#contact">Kontakt</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Kontakt</h4>
+          <ul>
+            <li><a href="tel:+48000000000">+48 000 000 000</a></li>
+            <li><a href="mailto:kontakt@prestiq.pl">kontakt@prestiq.pl</a></li>
+            <li>ul. Przykładowa 1</li>
+            <li>00-000 Miasto</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 Prestiq Car Spa. Wszelkie prawa zastrzeżone.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
