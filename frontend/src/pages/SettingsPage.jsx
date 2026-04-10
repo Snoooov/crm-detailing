@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 // ─── iCal ────────────────────────────────────────────────────────────────────
 
@@ -489,6 +490,7 @@ const TwoFactorSection = ({ isDark }) => {
 // ─── Główna strona ────────────────────────────────────────────────────────────
 
 const SettingsPage = () => {
+  usePageTitle('Ustawienia');
   const { user } = useAuth();
   const isDark = useDarkMode();
   const isAdmin = user?.role === 'admin';

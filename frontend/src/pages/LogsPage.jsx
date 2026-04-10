@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import useDarkMode from '../hooks/useDarkMode.js';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const ACTION_LABELS = {
   login:                 { label: 'Logowanie',              color: '#16a34a' },
@@ -42,6 +43,7 @@ const ENTITY_LABELS = {
 const PAGE_SIZE = 50;
 
 const LogsPage = () => {
+  usePageTitle('Logi systemu');
   const isDark = useDarkMode();
   const navigate = useNavigate();
 

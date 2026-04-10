@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import Pagination from '../../components/Pagination.jsx';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 
 const STATUS_LABELS = {
   vip: { label: 'VIP', color: '#7c3aed' },
@@ -55,6 +56,7 @@ const ClientsTable = ({ clients, navigate, showNip = false }) => (
 );
 
 const ClientsPage = () => {
+  usePageTitle('Klienci');
   const [currentPage, setCurrentPage] = useState(1);
   const PER_PAGE = 15;
 

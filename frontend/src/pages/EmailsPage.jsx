@@ -3,6 +3,7 @@ import api from '../api/axios.js';
 import Pagination from '../components/Pagination.jsx';
 import useDarkMode from '../hooks/useDarkMode.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const TYPE_NAMES = {
   confirmation: 'Potwierdzenie rezerwacji',
@@ -265,6 +266,7 @@ const CampaignTab = ({ isDark }) => {
 const VARIABLES_HELP = '{{client_name}}, {{vehicle_brand}}, {{vehicle_model}}, {{plate_number}}, {{service_name}}, {{date_from}}, {{date_to}}';
 
 const EmailsPage = () => {
+  usePageTitle('E-maile');
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [templates, setTemplates] = useState([]);

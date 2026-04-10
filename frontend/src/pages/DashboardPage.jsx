@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import { useAuth } from '../context/AuthContext.jsx';
 import { ORDER_STATUSES as STATUSES } from '../constants/orderStatuses.js';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const formatPrice = (price) => {
   if (!price && price !== 0) return '—';
@@ -74,6 +75,7 @@ const QuickAction = ({ label, color, onClick }) => (
 );
 
 const DashboardPage = () => {
+  usePageTitle('Strona główna');
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const ServiceCatalogPage = () => {
+  usePageTitle('Katalog usług');
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const [services, setServices] = useState([]);

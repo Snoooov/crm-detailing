@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
 import CollapsibleOrders from '../../components/CollapsibleOrders.jsx';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useDarkMode from '../../hooks/useDarkMode.js';
 
@@ -10,6 +11,7 @@ const VehicleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState(null);
+  usePageTitle(vehicle ? `${vehicle.brand} ${vehicle.model}` : 'Pojazd');
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);

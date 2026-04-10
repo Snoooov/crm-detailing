@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axios.js';
 import { useAuth } from '../context/AuthContext.jsx';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const ROLE_LABELS = {
   admin:    { label: 'Administrator', color: '#7c3aed' },
@@ -9,6 +10,7 @@ const ROLE_LABELS = {
 };
 
 const UsersPage = () => {
+  usePageTitle('Użytkownicy');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);

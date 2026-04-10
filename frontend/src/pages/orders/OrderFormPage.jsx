@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import PaymentSection from '../../components/PaymentSection.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 import useDarkMode from '../../hooks/useDarkMode.js';
 
 
@@ -150,6 +151,7 @@ const VehicleSearch = ({ clientId, onSelect, isDark }) => {
 };
 
 const OrderFormPage = () => {
+  usePageTitle('Nowe zlecenie');
   const navigate = useNavigate();
   const { user } = useAuth();
   const isDark = useDarkMode();

@@ -8,6 +8,7 @@ import DamageMap from '../../components/DamageMap.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 import useDarkMode from '../../hooks/useDarkMode.js';
 import { ORDER_STATUSES as STATUSES } from '../../constants/orderStatuses.js';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 
 const OrderDetailPage = () => {
   const { user: currentUser } = useAuth();
@@ -18,6 +19,7 @@ const OrderDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
+  usePageTitle(order ? `Zlecenie #${order.id}` : 'Zlecenie');
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('details');

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import NotesSection from '../../components/NotesSection.jsx';
 import ClientStats from '../../components/ClientStats.jsx';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 import CollapsibleOrders from '../../components/CollapsibleOrders.jsx';
 import { useAuth } from '../../context/AuthContext.jsx';
 
@@ -16,6 +17,7 @@ const ClientDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [client, setClient] = useState(null);
+  usePageTitle(client ? client.name : 'Klient');
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({});

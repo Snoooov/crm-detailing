@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { ORDER_STATUSES as STATUSES } from '../../constants/orderStatuses.js';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 import useDarkMode from '../../hooks/useDarkMode.js';
 import config from '../../config.js';
 
@@ -349,6 +350,7 @@ const KanbanBoard = ({ orders, onStatusChange, onNavigate, isDark }) => {
 };
 
 const OrdersPage = () => {
+  usePageTitle('Zlecenia');
   const isDark = useDarkMode();
   const [viewMode, setViewMode] = useState(() => localStorage.getItem('ordersView') || 'list');
 

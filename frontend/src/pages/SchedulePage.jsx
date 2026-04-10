@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api/axios.js';
 import useDarkMode from '../hooks/useDarkMode.js';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 
 const STATUSES = {
@@ -43,6 +44,7 @@ const formatWeekRange = (monday) => {
 };
 
 const SchedulePage = () => {
+  usePageTitle('Harmonogram');
   const [weekStart, setWeekStart] = useState(getMonday(new Date()));
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);

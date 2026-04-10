@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import api from '../api/axios.js';
 import useDarkMode from '../hooks/useDarkMode.js';
+import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const fmt = (val) =>
   new Intl.NumberFormat('pl-PL', { style: 'currency', currency: 'PLN' }).format(parseFloat(val) || 0);
@@ -296,6 +297,7 @@ const EmployeeModal = ({ userId, period, onClose, isDark }) => {
 };
 
 const ReportsPage = () => {
+  usePageTitle('Raporty');
   const [preset, setPreset] = useState('month');
   const [customFrom, setCustomFrom] = useState('');
   const [customTo, setCustomTo] = useState('');

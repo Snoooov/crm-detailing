@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../../api/axios.js';
 import Pagination from '../../components/Pagination.jsx';
 import { useState, useEffect, useRef } from 'react';
+import { usePageTitle } from '../../hooks/usePageTitle.js';
 
 const ClientSearch = ({ onSelect }) => {
   const [query, setQuery] = useState('');
@@ -59,6 +60,7 @@ const ClientSearch = ({ onSelect }) => {
 };
 
 const VehiclesPage = () => {
+  usePageTitle('Pojazdy');
   const [currentPage, setCurrentPage] = useState(1);
   const PER_PAGE = 20;
 
