@@ -19,6 +19,7 @@ import ServiceCatalogPage from './pages/ServiceCatalogPage.jsx';
 import ReportsPage from './pages/ReportsPage.jsx';
 import LogsPage from './pages/LogsPage.jsx';
 import InquiriesPage from './pages/InquiriesPage.jsx';
+import CalculatorPage from './pages/CalculatorPage.jsx';
 
 const DefaultRedirect = () => <Navigate to="/dashboard" />;
 
@@ -58,6 +59,7 @@ function App() {
             <Route path="users" element={<UsersPage />} />
             <Route path="logs" element={<LogsPage />} />
             <Route path="inquiries" element={<InquiriesPage />} />
+            <Route path="calculator" element={<CalculatorPage />} />
           </Route>
         </Routes>
       </BrowserRouter>

@@ -134,7 +134,7 @@ autodetailing-crm/
 └── website/                          ← strona wizytówkowa prestiq.pl
     ├── index.html                    ← strona główna (vanilla HTML)
     ├── style.css                     ← style (CSS variables, dark, responsive)
-    └── script.js                     ← ES module: navbar, scroll reveal, formularz kontaktowy
+    └── script.js                     ← ES module: navbar, scroll reveal, FAQ accordion, before/after slider, formularz kontaktowy
 ```
 
 ---
@@ -738,6 +738,26 @@ cp website/script.js  /var/www/prestiq/
 pm2 restart all
 echo "Deploy gotowy!"
 ```
+
+### Automatyczny backup bazy danych
+
+Skrypt `backend/backup.sh` tworzy skompresowany dump bazy i usuwa pliki starsze niż 7 dni.
+
+```bash
+# Nadaj uprawnienia
+chmod +x /var/www/crm/backend/backup.sh
+
+# Test ręczny
+bash /var/www/crm/backend/backup.sh
+
+# Dodaj do crona (backup co noc o 3:00)
+crontab -e
+# Wklej linię:
+0 3 * * * bash /var/www/crm/backend/backup.sh >> /var/log/crm-backup.log 2>&1
+```
+
+Backupy trafiają do `/var/backups/crm/`. Każdy plik to `crmdb_YYYY-MM-DD_HH-MM.sql.gz`.
+Aby przywrócić: `gunzip -c plik.sql.gz | psql -U crmuser crmdb`
 
 ### Alias deploy
 

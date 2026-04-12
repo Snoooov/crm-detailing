@@ -9,7 +9,8 @@ const NAV_ITEMS = [
   { to: '/schedule',  label: 'Harmonogram',  icon: '◷' },
   { to: '/orders',    label: 'Zlecenia',     icon: '◈' },
   { to: '/clients',   label: 'Klienci',      icon: '◉' },
-  { to: '/vehicles',  label: 'Pojazdy',      icon: '◎' },
+  { to: '/vehicles',   label: 'Pojazdy',      icon: '◎' },
+  { to: '/calculator', label: 'Kalkulator',   icon: '◬' },
 ];
 
 const ADMIN_ITEMS = [

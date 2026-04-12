@@ -111,6 +111,18 @@ pool.connect()
           updated_at TIMESTAMP DEFAULT NOW()
         );
 
+        -- Kompatybilność wsteczna: jeśli kolumna name istnieje z NOT NULL, usuń ograniczenie
+        DO $$
+        BEGIN
+          IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'email_templates' AND column_name = 'name' AND is_nullable = 'NO'
+          ) THEN
+            ALTER TABLE email_templates ALTER COLUMN name DROP NOT NULL;
+          END IF;
+        EXCEPTION WHEN others THEN NULL;
+        END $$;
+
         INSERT INTO email_templates (type, subject, body, enabled, delay_days) VALUES
           ('order_confirmation', 'Potwierdzenie przyjęcia zlecenia', '', TRUE, 0),
           ('order_ready', 'Twój pojazd jest gotowy do odbioru', '', TRUE, 0),
