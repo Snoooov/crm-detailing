@@ -115,7 +115,7 @@ const createOrder = async (req, res) => {
          WHERE o.id = $1`,
         [order.id]
       );
-      if (orderDetails.rows[0]) await sendOrderEmail(orderDetails.rows[0], 'confirmation');
+      if (orderDetails.rows[0]) await sendOrderEmail(orderDetails.rows[0], 'order_confirmation');
     } catch (emailErr) {
       console.error('Błąd wysyłania maila potwierdzającego:', emailErr);
     }
@@ -188,7 +188,7 @@ const updateOrder = async (req, res) => {
           [req.params.id]
         );
         if (orderDetails.rows[0]?.client_email) {
-          await sendOrderEmail(orderDetails.rows[0], 'date_changed');
+          await sendOrderEmail(orderDetails.rows[0], 'date_changed', { skipDuplicateCheck: true });
         }
       } catch (emailErr) {
         console.error('Błąd wysyłania maila o zmianie terminu:', emailErr);
@@ -225,24 +225,6 @@ const updateStatus = async (req, res) => {
     ]);
 
     await logAction({ userId: req.user.id, userName: req.user.name, action: 'order_status_changed', entityType: 'order', entityId: parseInt(req.params.id), details: { from: oldOrder.status, to: status }, ipAddress: getIp(req) });
-
-    if (status === 'done') {
-      try {
-        // pool imported at top
-        const orderDetails = await pool.query(
-          `SELECT o.*, c.full_name as client_name, c.email as client_email,
-                  v.brand as vehicle_brand, v.model as vehicle_model, v.plate_number
-           FROM orders o JOIN clients c ON o.client_id = c.id JOIN vehicles v ON o.vehicle_id = v.id
-           WHERE o.id = $1`,
-          [req.params.id]
-        );
-        if (orderDetails.rows[0]?.client_email) {
-          await sendOrderEmail(orderDetails.rows[0], 'ready');
-        }
-      } catch (emailErr) {
-        console.error('Błąd wysyłania maila o gotowości:', emailErr);
-      }
-    }
 
     res.json(order);
   } catch (err) {

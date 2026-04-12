@@ -123,10 +123,20 @@ pool.connect()
         EXCEPTION WHEN others THEN NULL;
         END $$;
 
+        -- Usuń stare, nieużywane szablony
+        DELETE FROM email_templates WHERE type IN ('order_ready', 'review_request');
+
         INSERT INTO email_templates (type, subject, body, enabled, delay_days) VALUES
-          ('order_confirmation', 'Potwierdzenie przyjęcia zlecenia', '', TRUE, 0),
-          ('order_ready', 'Twój pojazd jest gotowy do odbioru', '', TRUE, 0),
-          ('review_request', 'Prośba o opinię', '', TRUE, 1)
+          ('order_confirmation', 'Potwierdzenie przyjęcia zlecenia – {{vehicle_brand}} {{vehicle_model}}',
+           'Cześć {{client_name}},\n\nDziękujemy za zaufanie! Twoje zlecenie zostało przyjęte.\n\nUsługa: {{service_name}}\nPojazd: {{vehicle_brand}} {{vehicle_model}} ({{plate_number}})\nTermin: {{date_from}} – {{date_to}}\n\nW razie pytań skontaktuj się z nami.', TRUE, 0),
+          ('reminder_24h', 'Przypomnienie: jutro Twoja wizyta – {{vehicle_brand}} {{vehicle_model}}',
+           'Cześć {{client_name}},\n\nPrzypominamy, że jutro ({{date_from}}) zaplanowana jest usługa:\n\n{{service_name}}\nPojazd: {{vehicle_brand}} {{vehicle_model}} ({{plate_number}})\n\nCzekamy na Ciebie!', TRUE, 0),
+          ('date_changed', 'Zmiana terminu zlecenia – {{vehicle_brand}} {{vehicle_model}}',
+           'Cześć {{client_name}},\n\nInformujemy, że termin Twojego zlecenia uległ zmianie.\n\nUsługa: {{service_name}}\nPojazd: {{vehicle_brand}} {{vehicle_model}} ({{plate_number}})\nNowy termin: {{date_from}} – {{date_to}}\n\nW razie pytań jesteśmy do dyspozycji.', TRUE, 0),
+          ('followup_short', 'Jak oceniasz naszą usługę? – {{vehicle_brand}} {{vehicle_model}}',
+           'Cześć {{client_name}},\n\nMamy nadzieję, że jesteś zadowolony/a z usługi {{service_name}} wykonanej dla Twojego pojazdu {{vehicle_brand}} {{vehicle_model}}.\n\nBędziemy wdzięczni za opinię — pomaga nam się rozwijać i pomagać kolejnym klientom.\n\nDziękujemy za zaufanie!', TRUE, 0),
+          ('followup_long', 'Zapraszamy ponownie – {{vehicle_brand}} {{vehicle_model}}',
+           'Cześć {{client_name}},\n\nMinęło już trochę czasu od ostatniej wizyty Twojego pojazdu {{vehicle_brand}} {{vehicle_model}} w naszym serwisie.\n\nJeśli potrzebujesz kolejnej usługi lub chcesz odświeżyć wygląd auta — chętnie się zajmiemy!\n\nDo zobaczenia!', TRUE, 0)
         ON CONFLICT (type) DO NOTHING;
       `);
 

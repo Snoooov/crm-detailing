@@ -114,14 +114,16 @@ const sendEmail = async ({ to, subject, html }) => {
   });
 };
 
-const sendOrderEmail = async (order, type) => {
+const sendOrderEmail = async (order, type, options = {}) => {
   if (!order.client_email) return { skipped: 'brak emaila klienta' };
 
   const template = await getTemplate(type);
   if (!template) return { skipped: 'brak szablonu' };
 
-  const alreadySent = await wasEmailSent(order.id, type);
-  if (alreadySent) return { skipped: 'już wysłano' };
+  if (!options.skipDuplicateCheck) {
+    const alreadySent = await wasEmailSent(order.id, type);
+    if (alreadySent) return { skipped: 'już wysłano' };
+  }
 
   const company = await getCompany();
 

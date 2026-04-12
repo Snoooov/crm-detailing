@@ -6,13 +6,12 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { usePageTitle } from '../hooks/usePageTitle.js';
 
 const TYPE_NAMES = {
-  confirmation: 'Potwierdzenie rezerwacji',
-  reminder_24h: 'Przypomnienie 24h przed',
-  ready: 'Auto gotowe do odbioru',
-  date_changed: 'Zmiana terminu',
-  followup_short: 'Follow-up (4 dni po)',
-  followup_long: 'Follow-up (30 dni po)',
-  campaign: 'Kampania',
+  order_confirmation: 'Potwierdzenie rezerwacji',
+  reminder_24h:       'Przypomnienie 24h przed',
+  date_changed:       'Zmiana terminu',
+  followup_short:     'Follow-up (4 dni po)',
+  followup_long:      'Follow-up (30 dni po)',
+  campaign:           'Kampania',
 };
 
 const CLIENT_STATUS_LABELS = { vip: 'VIP', regular: 'Stały', normal: 'Normalny' };

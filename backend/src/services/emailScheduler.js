@@ -56,26 +56,7 @@ const runEmailJobs = async () => {
       console.log(`[reminder_24h] Zlecenie #${row.id}:`, result);
     }
 
-    // 2. Auto gotowe — status zmieniony na 'done'
-    const readyOrders = await pool.query(
-      `SELECT o.id FROM orders o
-       JOIN clients c ON o.client_id = c.id
-       WHERE o.status = 'done'
-         AND c.email IS NOT NULL
-         AND c.email != ''
-         AND o.id NOT IN (
-           SELECT order_id FROM email_logs
-           WHERE email_type = 'ready' AND order_id IS NOT NULL
-         )`
-    );
-
-    for (const row of readyOrders.rows) {
-      const order = await getOrderWithDetails(row.id);
-      const result = await sendOrderEmail(order, 'ready');
-      console.log(`[ready] Zlecenie #${row.id}:`, result);
-    }
-
-    // 3. Follow-up krótki (4 dni po wydaniu)
+    // 2. Follow-up krótki (4 dni po wydaniu — "jak oceniasz usługę?")
     const followupShortOrders = await pool.query(
       `SELECT o.id FROM orders o
        JOIN clients c ON o.client_id = c.id
@@ -96,7 +77,7 @@ const runEmailJobs = async () => {
       console.log(`[followup_short] Zlecenie #${row.id}:`, result);
     }
 
-    // 4. Follow-up długi (30 dni po wydaniu)
+    // 3. Follow-up długi (30 dni po wydaniu — "zapraszamy ponownie")
     const followupLongOrders = await pool.query(
       `SELECT o.id FROM orders o
        JOIN clients c ON o.client_id = c.id
